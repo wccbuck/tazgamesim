@@ -1,0 +1,582 @@
+- deck: "lich"
+  decktype: "villain"
+  cards:
+      - front:
+            name: "Smack-Talking Skull"
+            difficulty: 6
+            rightDiff: 1
+            icons: ["trap", "spooky"]
+            storyBonus: 1
+            number: 1
+        back:
+            name: "Swarm of Rats"
+            difficulty: 8
+            icons: ["monster", "double assist"]
+            number: 1
+            damage: 2
+      - front:
+            name: "Haunting Melody"
+            difficulty: 8
+            rightDiff: 2
+            icons: ["magic", "spooky"]
+            number: 2
+            storyBonus: 1
+        back:
+            name: "Crawling Hands"
+            difficulty: 7
+            icons: ["monster", "spooky"]
+            number: 2
+            damage: 2
+      - front:
+            name: "Non-Sinister Coffin"
+            difficulty: 8
+            icons: ["trap"]
+            number: 3
+            loot: 2
+        back:
+            name: "Familiar Zombie"
+            difficulty: 8
+            icons: ["monster", "spooky"]
+            number: 3
+            damage: 2
+            storyBonus: 1
+      - front:
+            name: "Arcane Riddle"
+            difficulty: 7
+            rightDiff: 1
+            icons: ["magic", "trap", "no assist"]
+            number: 4
+            storyBonus: 1
+            damage: 2
+        back:
+            name: "Sawbones"
+            difficulty: 9
+            icons: ["monster", "spooky"]
+            number: 4
+            damage: 3
+      - front:
+            name: "Vengeful Ghost"
+            difficulty: 10
+            icons: ["spooky", "double assist"]
+            number: 5
+            storyBonus: 1
+            loot: 2
+            damage: 2
+        back:
+            name: "Smug Apprentice"
+            difficulty: 10
+            icons: ["monster", "magic"]
+            number: 5
+            storyBonus: 1
+            loot: 2
+            damage: 2
+      - front:
+            name: "Terrifying Illusion"
+            difficulty: 9
+            rightDiff: 2
+            icons: ["magic", "trap"]
+            number: 6
+            storyBonus: 1
+        back:
+            name: "Sarcastic Specter"
+            difficulty: 10
+            rightDiff: 1
+            icons: ["monster", "spooky"]
+            number: 6
+            damage: 2
+            loot: 2
+      - front:
+            name: "Runes of Doom"
+            difficulty: 10
+            rightDiff: 1
+            icons: ["magic", "trap"]
+            number: 7
+            loot: 2
+            damage: 2
+        back:
+            name: "Hangry Ghouls"
+            difficulty: 11
+            icons: ["monster", "spooky", "double assist"]
+            number: 7
+            damage: 2
+            loot: 2
+      - front:
+            name: "Dreadful Nightmare"
+            difficulty: 8
+            icons: ["magic", "trap", "no assist"]
+            number: 8
+            damage: 2
+            storyBonus: 1
+        back:
+            name: "Pretentious Vampire"
+            difficulty: 11
+            icons: ["monster", "spooky"]
+            number: 8
+            damage: 2
+            loot: 2
+            storyBonus: 1
+      - front:
+            name: "Living Shadow"
+            difficulty: 10
+            rightDiff: 1
+            icons: ["monster", "spooky", "double assist"]
+            number: 9
+            loot: 2
+        back:
+            name: "Undead Dragon"
+            difficulty: 12
+            icons: ["monster", "spooky", "double assist"]
+            number: 9
+            damage: 3
+            loot: 3
+      - front:
+            name: "Facing the Lich"
+            difficulty: 15
+            rightDiff: 1
+            icons: ["magic", "spooky"]
+            loot: 3
+            damage: 2
+            finale: True
+            failEffect: "difficulty down 2"
+        back:
+            name: "The Lich"
+            difficulty: 0
+            finale: True
+            rightDiff: -1
+- deck: "cave"
+  decktype: "location"
+  cards:
+      - front:
+            name: "The Great Gate"
+            difficulty: 6
+            icons: ["trap"]
+            number: 1
+            storyBonus: 1
+            damage: 2
+        back:
+            name: "Bottomless Pit"
+            difficulty: 6
+            leftDiff: 1
+            icons: ["trap"]
+            number: 1
+            damage: 3
+            failEffect: "succeed after damage"
+      - front:
+            name: "Secret Passage"
+            difficulty: 7
+            icons: ["trap", "magic"]
+            number: 2
+            storyBonus: 1
+        back:
+            name: "Narrow Bridge"
+            difficulty: 6
+            leftDiff: 1
+            icons: ["no assist"]
+            number: 2
+            storyBonus: 1
+      - front:
+            name: "Haunted Mine"
+            difficulty: 8
+            leftDiff: 1
+            icons: ["spooky", "trap"]
+            number: 3
+            damage: 2
+            loot: 2
+            storyBonus: 1
+        back:
+            name: "Gerblin Garrison"
+            difficulty: 8
+            icons: ["monster"]
+            number: 3
+            storyBonus: 1
+            damage: 2
+            loot: 2
+      - front:
+            name: "Tiny Tomb"
+            difficulty: 8
+            icons: ["spooky", "trap"]
+            number: 4
+            loot: 2
+            damage: 2
+        back:
+            name: "Garbage Pit"
+            difficulty: 7
+            leftDiff: 1
+            icons: ["monster"]
+            number: 4
+            damage: 2
+      - front:
+            name: "Pile of Bones"
+            difficulty: 9
+            icons: ["spooky"]
+            number: 5
+            storyBonus: 1
+            loot: 2
+        back:
+            name: "Kobold Kennels"
+            difficulty: 9
+            icons: ["monster"]
+            number: 5
+            damage: 2
+            storyBonus: 1
+      - front:
+            name: "Spider's Lair"
+            difficulty: 9
+            leftDiff: 1
+            icons: ["monster", "trap"]
+            number: 6
+            effect: "roll twice pick worst"
+            loot: 2
+        back:
+            name: "Hungry Garden"
+            difficulty: 10
+            icons: ["monster", "magic"]
+            number: 6
+            storyBonus: 1
+      - front:
+            name: "River of Fire"
+            difficulty: 9
+            icons: ["double assist"]
+            number: 7
+            damage: 3
+            storyBonus: 1
+        back:
+            name: "Ogre's Kitchen"
+            difficulty: 11
+            icons: ["monster"]
+            number: 7
+            storyBonus: 1
+            loot: 2
+            damage: 2
+      - front:
+            name: "Grand Chasm"
+            difficulty: 9
+            leftDiff: 1
+            icons: ["double assist"]
+            number: 8
+            damage: 2
+        back:
+            name: "Vile Jelly Pits"
+            difficulty: 11
+            leftDiff: 1
+            icons: ["monster", "trap", "double assist"]
+            number: 8
+            damage: 2
+            loot: 2
+      - front:
+            name: "Ancient Ruins"
+            difficulty: 11
+            icons: ["trap", "double assist"]
+            number: 9
+            damage: 2
+            loot: 3
+            storyBonus: 1
+        back:
+            name: "Tunnel of Terrors"
+            difficulty: 10
+            leftDiff: 1
+            icons: ["spooky", "magic"]
+            number: 9
+            storyBonus: 1
+            loot: 2
+            damage: 2
+      - front:
+            name: "Collapsing Caverns"
+            difficulty: 11
+            leftDiff: 1
+            icons: ["double assist"]
+            loot: 3
+            damage: 0
+            failEffect: "damage up 2"
+            finale: True
+        back:
+            name: "The Cave"
+            difficulty: 0
+            leftDiff: -1
+            finale: True
+- deck: "staff"
+  decktype: "relic"
+  cards:
+      - front:
+            name: "Sinister Snowmen"
+            difficulty: 10
+            icons: ["monster", "double assist"]
+            loot: 2
+            damage: 2
+        back:
+            name: "Haunted Blizzard"
+            difficulty: 10
+            leftDiff: 2
+            icons: ["spooky", "double assist"]
+            loot: 2
+            effect: "spend action token to engage"
+      - front:
+            name: "Magical Duel"
+            difficulty: 8
+            icons: ["magic", "spooky", "no assist"]
+            loot: 2
+            damage: 2
+            storyBonus: 1
+        back:
+            name: "Perfect Storm"
+            difficulty: 11
+            icons: ["monster", "double assist"]
+            loot: 2
+            damage: 2
+            storyBonus: 1
+      - front:
+            name: "Elemental Tempest"
+            difficulty: 13
+            leftDiff: 1
+            rightDiff: 1
+            icons: ["magic", "monster", "double assist"]
+            loot: 3
+            damage: 2
+            failEffect: "difficulty down 2"
+        back:
+            name: "Maze of Flame"
+            difficulty: 10
+            rightDiff: 1
+            icons: ["magic", "trap", "double assist"]
+            loot: 2
+            damage: 2
+      - front:
+            name: "Massive Fireball"
+            difficulty: 11
+            icons: ["magic", "double assist"]
+            damage: 4
+            failEffect: "succeed after damage"
+        back:
+            name: "Rain of Kittens"
+            difficulty: 10
+            rightDiff: 1
+            icons: ["double assist"]
+            loot: 2
+            damage: 2
+            storyBonus: 1
+      - front:
+            name: "Lightning Bolts"
+            difficulty: 7
+            leftDiff: 1
+            rightDiff: 1
+            icons: ["magic"]
+            damage: 2
+            effect: "spend action token to engage"
+        back:
+            name: "Terrible Weather"
+            difficulty: 7
+            leftDiff: 2
+            rightDiff: 2
+            storyBonus: 1
+      - front:
+            name: "Wall of Ice & Fire"
+            difficulty: 9
+            icons: ["magic", "trap"]
+            damage: 2
+        back:
+            name: "Wall of Stone"
+            difficulty: 11
+            icons: ["monster", "trap"]
+      - front:
+            name: "Frost Spirits"
+            difficulty: 8
+            leftDiff: 1
+            icons: ["magic", "spooky"]
+            damage: 2
+            storyBonus: 1
+        back:
+            name: "Fire Pits"
+            difficulty: 7
+            rightDiff: 1
+            icons: ["trap"]
+            damage: 3
+      - front:
+            name: "Drizzle"
+            difficulty: 5
+            leftDiff: 1
+            rightDiff: 1
+        back:
+            name: "Staff Staff"
+            difficulty: 7
+            icons: ["monster"]
+            damage: 2
+            loot: 2
+      - front:
+            name: "Candle Ghost"
+            difficulty: 7
+            leftDiff: 1
+            icons: ["spooky"]
+            damage: 2
+            storyBonus: 1
+        back:
+            name: "Ice Sculptures"
+            difficulty: 8
+            icons: ["monster", "spooky"]
+            damage: 2
+            storyBonus: 1
+      - front:
+            name: "Elemental Colossus"
+            difficulty: 14
+            icons: ["magic", "monster", "double assist"]
+            loot: 3
+            damage: 3
+            finale: True
+            storyBonus: 1
+        back:
+            name: "The Staff"
+            difficulty: 0
+            finale: True
+            leftDiff: -1
+            rightDiff: -1
+- deck: "idol"
+  decktype: "relic"
+  cards:
+      - front:
+            name: "Looking Glass"
+            difficulty: 8
+            icons: ["magic", "trap"]
+            number: 1
+            failEffect: "flip self"
+            succeedEffect: "flip next"
+        back:
+            name: "Deadly Reflection"
+            difficulty: 9
+            leftDiff: 1
+            loot: 2
+            damage: 2
+            storyBonus: 1
+            number: 2
+            icons: ["trap", "magic", "no assist"]
+      - front:
+            name: "Mists of Madness"
+            difficulty: 8
+            leftDiff: 1
+            rightDiff: 1
+            icons: ["magic", "spooky"]
+            number: 1
+            failEffect: "flip villain"
+        back:
+            name: "Shocking Revelation"
+            difficulty: 9
+            leftDiff: 1
+            loot: 2
+            damage: 2
+            storyBonus: 1
+            number: 2
+            icons: ["trap", "spooky", "no assist"]
+      - front:
+            name: "Time Warp"
+            difficulty: 7
+            icons: ["magic", "spooky"]
+            number: 1
+            damage: 2
+            succeedEffect: "return top discarded challenge"
+        back:
+            name: "Dimension Door"
+            difficulty: 7
+            damage: 2
+            number: 1
+            icons: ["trap", "magic"]
+            succeedEffect: "flip location"
+      - front:
+            name: "Ominous Chanting"
+            difficulty: 8
+            icons: ["magic", "spooky"]
+            leftDiff: 1
+            number: 1
+            succeedEffect: "flip villain"
+        back:
+            name: "Just Enough Tentacles"
+            difficulty: 9
+            loot: 2
+            damage: 2
+            number: 1
+            icons: ["monster"]
+            storyBonus: 1
+      - front:
+            name: "A Few Tentacles"
+            difficulty: 7
+            icons: ["monster"]
+            number: 1
+            failEffect: "flip self"
+        back:
+            name: "Too Many Tentacles"
+            difficulty: 12
+            loot: 2
+            damage: 3
+            number: 2
+            icons: ["monster", "double assist"]
+            storyBonus: 1
+      - front:
+            name: "Endless Frogs"
+            difficulty: 11
+            icons: ["monster", "spooky", "double assist"]
+            rightDiff: 1
+            number: 1
+            loot: 2
+            succeedEffect: "flip next"
+        back:
+            name: "Book of Secrets"
+            difficulty: 10
+            loot: 2
+            number: 1
+            icons: ["magic", "trap"]
+            storyBonus: 1
+      - front:
+            name: "Lovely Statue"
+            difficulty: 7
+            icons: ["magic", "trap"]
+            number: 1
+            loot: 0
+            succeedEffect: "flip self"
+        back:
+            name: "Living Artwork"
+            difficulty: 12
+            loot: 3
+            damage: 2
+            number: 2
+            icons: ["monster", "spooky", "double assist"]
+            storyBonus: 1
+      - front:
+            name: "Tranquil Pool"
+            difficulty: 7
+            icons: ["magic", "trap"]
+            number: 1
+            damage: 2
+            failEffect: "flip self"
+        back:
+            name: "Hungry Ooze"
+            difficulty: 10
+            loot: 2
+            damage: 3
+            number: 2
+            icons: ["monster"]
+      - front:
+            name: "Moment of Peace"
+            difficulty: 5
+            icons: ["spooky", "trap"]
+            number: 1
+            succeedEffect: "flip next recover 1"
+        back:
+            name: "Horrifying Discovery"
+            difficulty: 8
+            leftDiff: 1
+            rightDiff: 1
+            loot: 2
+            damage: 2
+            number: 2
+            storyBonus: 1
+      - front:
+            name: "Maze of Realities"
+            difficulty: 12
+            icons: ["magic", "trap"]
+            loot: 3
+            damage: 2
+            finale: True
+            failEffect: "flip location"
+        back:
+            name: "The Idol"
+            difficulty: 0
+            finale: True
+            leftDiff: -1
+            rightDiff: -1

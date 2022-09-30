@@ -1,0 +1,43 @@
+- name: "G'Nash Lends A Hand"
+  ongoingBonusVS: ["monster"]
+  discardEffect: "no damage after fail"
+- name: "Merle's Blessing"
+  ongoingBonusVS: ["spooky"]
+  discardEffect: "recover 3"
+- name: "Ride the Binicorn"
+  ongoingBonusVS: ["magic"]
+  discardEffect: "regain action tokens"
+- name: "Davenport's Delivery"
+  ongoingBonusVS: ["magic"]
+  discardEffect: "draw fkc card"
+- name: "Advice from Magnus"
+  ongoingBonusVS: ["monster"]
+  discardEffect: "+2 any die roll suffer 1 damage"
+- name: "Help from Hurley"
+  ongoingBonusVS: ["trap"]
+  discardEffect: "recover 3"
+- name: "Carey Scouts Ahead"
+  ongoingBonusVS: ["trap"]
+  discardEffect: "+2 trap die roll"
+- name: "Lup's Lessons"
+  ongoingBonusVS: ["magic"]
+  discardEffect: "+2 magic die roll"
+- name: "Angus Is On The Case!"
+  ongoingBonusVS: ["trap"]
+  discardEffect: "+1 any die roll"
+- name: "Mysterious Vision"
+  ongoingBonusVS: ["spooky"]
+  discardEffect: "+1 any die roll"
+- name: "Taako's Tips"
+  ongoingBonusVS: ["magic"]
+  discardEffect: "+1 any die roll"
+- name: "Tragic Backstory"
+  discardEffect: "draw fkc card skip challenge"
+- name: "Director's Guidance"
+  ongoingBonusVS: ["any"]
+  discardEffect: "flip any active challenge cards"
+- name: "Killin' It With Killian"
+  ongoingBonusVS: ["monster"]
+  discardEffect: "+2 monster die roll"
+- name: "Your Annoying Roommate"
+  discardEffect: "draw fkc card skip challenge"

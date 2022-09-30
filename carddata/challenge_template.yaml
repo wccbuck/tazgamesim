@@ -1,0 +1,86 @@
+- deck: ""
+  decktype: ""
+  cards:
+      - front:
+            name: ""
+            difficulty:
+            icons: []
+        back:
+            name: ""
+            difficulty:
+            icons: []
+      - front:
+            name: ""
+            difficulty:
+            icons: []
+        back:
+            name: ""
+            difficulty:
+            icons: []
+      - front:
+            name: ""
+            difficulty:
+            icons: []
+        back:
+            name: ""
+            difficulty:
+            icons: []
+      - front:
+            name: ""
+            difficulty:
+            icons: []
+        back:
+            name: ""
+            difficulty:
+            icons: []
+      - front:
+            name: ""
+            difficulty:
+            icons: []
+        back:
+            name: ""
+            difficulty:
+            icons: []
+      - front:
+            name: ""
+            difficulty:
+            icons: []
+        back:
+            name: ""
+            difficulty:
+            icons: []
+      - front:
+            name: ""
+            difficulty:
+            icons: []
+        back:
+            name: ""
+            difficulty:
+            icons: []
+      - front:
+            name: ""
+            difficulty:
+            icons: []
+        back:
+            name: ""
+            difficulty:
+            icons: []
+      - front:
+            name: ""
+            difficulty:
+            icons: []
+        back:
+            name: ""
+            difficulty:
+            icons: []
+      - front:
+            name: ""
+            difficulty:
+            icons: []
+            loot: 3
+            damage: 2
+            finale: True
+        back:
+            name: ""
+            difficulty: 0
+            finale: True

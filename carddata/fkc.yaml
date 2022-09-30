@@ -1,0 +1,108 @@
+- name: "Faithful Hound"
+  ongoingBonusVS: ["monster"]
+  discardEffect: "+1 any die roll any player"
+- name: "Cryptic Prophecy"
+  ongoingBonusVS: ["any"]
+  discardEffect: "+1 any die roll any player"
+- name: "Fannypack of Holding"
+  ongoingBonusVS: ["trap"]
+  ongoingEffect: "no fkc card limit"
+- name: "Faithful Hound"
+  ongoingBonusVS: ["monster"]
+  discardEffect: "+1 any die roll any player"
+- name: "Scoundrel's Dice"
+  ongoingBonusVS: ["trap", "magic"]
+  discardEffect: "reroll any player"
+- name: "Glutton's Fork"
+  ongoingEffect: "spend token recover 1"
+- name: "The Flaming Raging Poisoning Sword of Doom"
+  discardEffect: "win monster challenge"
+- name: "Railsplitter"
+  ongoingBonusVS: ["monster"]
+  ongoingEffect: "+1 assist monster challenge"
+- name: "Champion's Belt"
+  ongoingEffect: "baseStrength always 4"
+- name: "Mystery Powder"
+  discardEffect: "+2 any die roll any player"
+- name: "Nit Picker"
+  ongoingBonusVS: ["trap"]
+  ongoingEffect: "+2 trap die roll when spend token"
+- name: "Potion of Healing"
+  discardEffect: "recover 3"
+- name: "Ring of Greed"
+  ongoingBonus: 2
+  ongoingBonusVS: ["any"]
+  ongoingEffect: "no assist"
+  discardEffect: "+1 any die roll any player"
+- name: "Jar of Bees"
+  discardEffect: "+3 monster die roll any player"
+- name: "Steven the Goldfish"
+  ongoingBonusVS: ["trap"]
+  ongoingEffect: "assist self"
+- name: "Safety Harness"
+  ongoingBonusVS: ["any"]
+  ongoingEffect: "no damage after fail but discard this"
+- name: "Potion of Unreasonable Strength"
+  discardEffect: "+3 any die roll before"
+- name: "Beginner's Luck"
+  discardEffect: "+2 any die roll any player"
+- name: "Glowing Axe"
+  ongoingBonusVS: ["monster", "spooky"]
+- name: "Lens of Creeping"
+  ongoingBonusVS: ["trap", "monster"]
+- name: "Lunar Bar"
+  discardEffect: "recover 2"
+- name: "Ring of Recall"
+  ongoingBonusVS: ["magic"]
+  discardEffect: "regain action tokens"
+- name: "Free Cheese"
+  discardEffect: "recover 3"
+- name: "Gustmaster 5000"
+  ongoingBonusVS: ["monster"]
+  discardEffect: "+2 monster die roll any player"
+- name: "Haunted Doll"
+  ongoingBonusVS: ["spooky", "magic"]
+- name: "Adamant Spanner"
+  ongoingBonusVS: ["trap", "monster"]
+- name: "Dragonscale Armor"
+  ongoingBonusVS: ["magic", "monster"]
+- name: "Know-It-All"
+  ongoingEffect: "+1 assist any challenge"
+- name: "Extreme Teen Bible"
+  ongoingBonusVS: ["spooky"]
+  discardEffect: "+2 spooky die roll any player"
+- name: "Pocket Spa"
+  ongoingBonusVS: ["spooky"]
+  ongoingEffect: "recover 1 skip challenge"
+- name: "Scrying Bones"
+  ongoingBonusVS: ["trap", "monster"]
+  discardEffect: "+1 any die roll any player"
+- name: "Shield of Shielding"
+  ongoingEffect: "spend token after fail reduce damage by 2"
+- name: "Pocket Guide To Adventuring"
+  ongoingBonusVS: ["trap", "monster"]
+  discardEffect: "+1 any die roll any player"
+- name: "Slippies of Haste"
+  ongoingBonusVS: ["trap", "monster"]
+  ongoingEffect: "spend token after fail reduce damage by 1"
+- name: "Phantom Fist"
+  ongoingBonusVS: ["monster"]
+  discardEffect: "no damage after fail"
+- name: "Racing Mask"
+  ongoingBonusVS: ["trap", "magic"]
+  discardEffect: "+2 trap die roll any player"
+- name: "Ring of the Giant Slayer"
+  ongoingBonusVS: ["monster"]
+  ongoingEffect: "+1 when difficulty greater than 9"
+- name: "Wand of Switcheroo"
+  ongoingBonusVS: ["magic"]
+  ongoingEffect: "can use other players abilities"
+- name: "All or Nothing Coin"
+  discardEffect: "any challenge 50%"
+- name: "Living Grimoire"
+  ongoingBonusVS: ["magic"]
+  discardEffect: "+1 any die roll any player"
+- name: "Cloak of Invisibility"
+  ongoingEffect: "after fail reduce damage by 1"
+- name: "Mockingbird Gum"
+  ongoingBonusVS: ["any"]

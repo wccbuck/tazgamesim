@@ -1,0 +1,14 @@
+villain = ""
+villainDeck = []
+relic = ""
+relicDeck = []
+location = ""
+locationDeck = []
+challengeDiscard = []
+surprise = None
+health = 10
+maxHealth = 10
+players = []  # list of PlayerCharacter objects
+currentPlayer = 0
+priorities = {}
+relicTokens = 0

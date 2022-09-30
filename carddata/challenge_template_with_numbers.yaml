@@ -1,0 +1,104 @@
+- deck: ""
+  decktype: ""
+  cards:
+      - front:
+            name: ""
+            difficulty:
+            icons: []
+            number: 1
+        back:
+            name: ""
+            difficulty:
+            icons: []
+            number: 1
+      - front:
+            name: ""
+            difficulty:
+            icons: []
+            number: 2
+        back:
+            name: ""
+            difficulty:
+            icons: []
+            number: 2
+      - front:
+            name: ""
+            difficulty:
+            icons: []
+            number: 3
+        back:
+            name: ""
+            difficulty:
+            icons: []
+            number: 3
+      - front:
+            name: ""
+            difficulty:
+            icons: []
+            number: 4
+        back:
+            name: ""
+            difficulty:
+            icons: []
+            number: 4
+      - front:
+            name: ""
+            difficulty:
+            icons: []
+            number: 5
+        back:
+            name: ""
+            difficulty:
+            icons: []
+            number: 5
+      - front:
+            name: ""
+            difficulty:
+            icons: []
+            number: 6
+        back:
+            name: ""
+            difficulty:
+            icons: []
+            number: 6
+      - front:
+            name: ""
+            difficulty:
+            icons: []
+            number: 7
+        back:
+            name: ""
+            difficulty:
+            icons: []
+            number: 7
+      - front:
+            name: ""
+            difficulty:
+            icons: []
+            number: 8
+        back:
+            name: ""
+            difficulty:
+            icons: []
+            number: 8
+      - front:
+            name: ""
+            difficulty:
+            icons: []
+            number: 9
+        back:
+            name: ""
+            difficulty:
+            icons: []
+            number: 9
+      - front:
+            name: ""
+            difficulty:
+            icons: []
+            loot: 3
+            damage: 2
+            finale: True
+        back:
+            name: ""
+            difficulty: 0
+            finale: True

@@ -1,0 +1,9 @@
+villain: lich
+relic: staff
+location: cave
+players:
+    - warrior
+    - rogue
+    - priest
+    - wizard
+    - bard

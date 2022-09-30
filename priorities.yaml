@@ -1,0 +1,22 @@
+obtain 1 loot: 1
+obtain 2 loot: 2
+obtain 2 loot currently have loot 2 card: 1
+obtain 3 loot: 3
+# priority to clear a card: a/(cards remaining + b)
+clear 1 card a: 22.5
+clear 1 card b: 1.25
+# unless one deck is already cleared
+clear 1 card increased priority a: 45
+# unless one non-relic deck is cleared and we're looking at the other non-relic
+clear 1 card reduced priority a: 11.25
+# additional priority factor in case of leftDiff/rightDiff;
+# assume a 15% increase of winning an adjacent challenge per
+# point of adjacent difficulty increase cleared. This factor
+# adjusts that priority modifier (1 = default)
+adjacent difficulty factor: 1
+# priority to lose/gain health:
+# a*(1/(old health + b) - 1/(new health + b))
+health change a: 100
+health change b: 0.1
+# how important is a change to this challenge card's properties on fail
+next turn relevance factor: 1
