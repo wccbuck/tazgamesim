@@ -78,7 +78,7 @@
   ongoingBonusVS: ["trap", "monster"]
   discardEffect: "+1 any die roll any player"
 - name: "Shield of Shielding"
-  ongoingEffect: "spend token after fail reduce damage by 2"
+  ongoingEffect: "spend token after fail reduce damage by 2 any player"
 - name: "Pocket Guide To Adventuring"
   ongoingBonusVS: ["trap", "monster"]
   discardEffect: "+1 any die roll any player"
@@ -87,7 +87,7 @@
   ongoingEffect: "spend token after fail reduce damage by 1"
 - name: "Phantom Fist"
   ongoingBonusVS: ["monster"]
-  discardEffect: "no damage after fail"
+  discardEffect: "no damage after fail any player"
 - name: "Racing Mask"
   ongoingBonusVS: ["trap", "magic"]
   discardEffect: "+2 trap die roll any player"

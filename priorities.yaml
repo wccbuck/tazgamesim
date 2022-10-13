@@ -6,17 +6,22 @@ obtain 3 loot: 3
 clear 1 card a: 22.5
 clear 1 card b: 1.25
 # unless one deck is already cleared
-clear 1 card increased priority a: 45
+clear 1 card increased priority a: 50
+clear 1 card increased priority b: 0.1
 # unless one non-relic deck is cleared and we're looking at the other non-relic
-clear 1 card reduced priority a: 11.25
+clear 1 card reduced priority a: 0
 # additional priority factor in case of leftDiff/rightDiff;
 # assume a 15% increase of winning an adjacent challenge per
 # point of adjacent difficulty increase cleared. This factor
 # adjusts that priority modifier (1 = default)
-adjacent difficulty factor: 1
+adjacent difficulty factor: 0.7
 # priority to lose/gain health:
 # a*(1/(old health + b) - 1/(new health + b))
 health change a: 100
 health change b: 0.1
 # how important is a change to this challenge card's properties on fail
-next turn relevance factor: 1
+next turn relevance factor: 0.7
+# how important is a fkc card's ongoing bonus
+ongoing bonus: 1.8
+# unless it's against any challenge
+ongoing bonus any: 3.2

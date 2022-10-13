@@ -1,9 +1,12 @@
 villain: lich
 relic: staff
 location: cave
+skipPauses: False
+display: False
+runs: 48000
 players:
     - warrior
-    - rogue
-    - priest
-    - wizard
     - bard
+    - rogue
+    - wizard
+    - priest

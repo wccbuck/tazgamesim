@@ -1,14 +1,12 @@
 import random
 import copy
+import statistics
 import state, futureState
+from time import sleep
 from init import *
 from classes import *
 
-surpriseCards = initDeck("carddata/surprise.yaml", "surprise")
-fkcCards = initDeck("carddata/fkc.yaml", "fkc")
-challengeDecks = initDeck("carddata/challenge.yaml", "challenge")
-
-initGame("game_setup.yaml", challengeDecks)
+initGame("game_setup.yaml")
 
 # maxNameLength = 0
 # cardName = ""
@@ -25,11 +23,29 @@ initGame("game_setup.yaml", challengeDecks)
 
 ####
 # state.challengeDiscard.append(state.villainDeck.pop(0))
+# turnsRemaining = len(state.players) - 1 - state.currentPlayer
+# assistOpportunities = getNumberOfAssistOpportunities(turnsRemaining)
+# assistTokensAvailable = len([True for player in state.players if player.hasToken])
+# assistTokensExpended = len(state.players) - assistTokensAvailable
+# print(min(max(assistOpportunities - assistTokensAvailable, 0), assistTokensExpended))
+#
+# print(assistOpportunities, assistTokensAvailable, assistTokensExpended)
+####
+# state.health = 7
+# state.villainDeck.insert(0, state.surpriseDeck.pop())
+# state.villainDeck[0].currentDeck = "villain"
+# state.villainDeck[0].reveal()
+# print(state.surprise.name, state.surprise.discardEffect)
+# state.relicDeck.insert(0, state.surpriseDeck.pop())
+# state.relicDeck[0].currentDeck = "relic"
+# state.relicDeck[0].reveal()
+# print(state.surprise.name, state.surprise.discardEffect)
+####
 
 
 def displayGameState():
 
-    activeCards = [state.villainDeck[0], state.relicDeck[0], state.locationDeck[0]]
+    activeCards = getActiveCards()
     cardStrings = []
     headers = [
         f"Villain: {state.villain}",
@@ -53,6 +69,11 @@ def displayGameState():
         cs.rightDiff = str(card.rightDiff) if card.rightDiff != 0 else "  "
         if card.rightDiff > 0:
             cs.rightDiff = "+" + cs.rightDiff
+        cs.diffMod = str(card.diffMod) if card.diffMod != 0 else "   "
+        if card.diffMod > 0:
+            cs.diffMod = "+" + cs.diffMod
+        if len(cs.diffMod) < 3:
+            cs.diffMod = cs.diffMod + " "
 
         cs.loot = str(card.loot)
         if len(cs.loot) < 2:
@@ -153,7 +174,9 @@ def displayGameState():
         f"|| {cardStrings[2].leftDiff} |     {cardStrings[2].difficulty}     | {cardStrings[2].rightDiff} ||"
     )
     print(
-        f"|\____|            |____/||\____|            |____/||\____|            |____/|"
+        f"|\____|     {cardStrings[0].diffMod}    |____/|"
+        f"|\____|     {cardStrings[1].diffMod}    |____/|"
+        f"|\____|     {cardStrings[2].diffMod}    |____/|"
     )
     print(
         f"|      \__________/      ||      \__________/      ||      \__________/      |"
@@ -223,8 +246,8 @@ def displayGameState():
         ", ".join(state.surprise.ongoingBonusVS) if activeSurpriseCard else ""
     )
     surpriseCardOngoingBonus = (
-        f"\nOngoing +{state.surprise.ongoingBonus} bonus against {state.surprise.ongoingBonusVS}"
-        if activeSurpriseCard
+        f"\nOngoing +{state.surprise.ongoingBonus} bonus against {surpriseCardIcons}"
+        if activeSurpriseCard and state.surprise.ongoingBonusVS
         else ""
     )
     surpriseCardDiscardEffect = (
@@ -245,7 +268,7 @@ def displayGameState():
             "\033[92;1m" if player == state.players[state.currentPlayer] else "\033[1m"
         )
         suffix = "\033[0m"
-        print(f"  {prefix}{player.classname}{suffix}")
+        print(f"  {prefix}{player.name}{suffix}")
         print(f"    has token: {player.hasToken}")
         fkcCards = ", ".join(card.name for card in player.fkcCards)
         lootCards = ", ".join(f"{card.name} ({card.loot})" for card in player.lootCards)
@@ -266,40 +289,154 @@ def displayHealth():
     print(f"\033[1mCurrent Health:{prefix} {state.health}\033[0m")
 
 
-for _ in range(6):
-
-    displayGameState()
-    activeCards = [state.villainDeck[0], state.relicDeck[0], state.locationDeck[0]]
-
-    pc = state.players[state.currentPlayer]
-    pcClass = pc.classname
-
-    print(f"\nThe {pcClass}'s potential strength against each challenge:")
-    for card in activeCards:
-        print(
-            f"  {card.name}: {pc.totalStrength(card)} vs {card.getDifficulty()} ({getProbPercentile(card, pc)}%)"
-            f"\n    Priority: {getPriority(card, pc)}"
-        )
-
-    options = []
-    for card in activeCards:
-        if not card.effect == "spend action token to engage" or pc.hasToken:
-            # consider the option of getting tokens back from Binicorn or Ring of Recall
-            options.append(Option(card.name, card, pc))
-
-    options = sorted(options, reverse=True)
-
-    print(
-        f"\n\nTaking action on \033[1m{options[0].name}\033[0m. Press enter to continue..."
-    )
-    input()
-    options[0].takeAction()
-    displayHealth()
-    print("Press enter to continue to the next player's turn.")
-    # print("Btw, current player's loot cards:")
-    # print(pc.lootCards)
-    input()
 ####
+# Testing adding loot cards
+####
+# while True:
+#     displayGameState()
+#     activeCards = getActiveCards()
+#     pc = state.players[state.currentPlayer]
+#     fkcCards = ", ".join(card.name for card in pc.fkcCards)
+#     lootCards = ", ".join(f"{card.name} ({card.loot})" for card in pc.lootCards)
+#     print(f"{pc.name}'s loot cards:")
+#     print(lootCards)
+#     print(f"{pc.name}'s fkc cards:")
+#     print(fkcCards)
+#     index = random.choice(range(1, 3))
+#     print(f"Adding {activeCards[index].name} (loot {activeCards[index].loot}).")
+#     input()
+#     lootCard = getDeckFromType(activeCards[index].currentDeck).pop(0)
+#     pc.addLootCard(lootCard)
+####
+# Testing post-roll potential helpers
+####
+# minimumNeeded = 4
+# potentialHelpers = [
+#     {"name": "wow", "assist": 1, "pc": True, "holdPriority": 0},
+#     {"name": "yep", "assist": 1, "pc": False, "holdPriority": 1},
+#     {"name": "bob", "assist": 4, "pc": True, "holdPriority": 1.6},
+#     {"name": "foo", "assist": 2, "pc": False, "holdPriority": 1},
+#     {"name": "bar", "assist": 1, "pc": True, "holdPriority": 0.5},
+# ]
+# maxAssists = 1
+#
+#
+# def makeSetsOfUsefulHelpers(setsOfUsefulHelpers, potentialHelpers, newSet):
+#     for index, potentialHelper in enumerate(potentialHelpers):
+#         newSet.append(potentialHelper)
+#         if len([helper for helper in newSet if helper["pc"]]) <= maxAssists:
+#             helpSum = sum([helper["assist"] for helper in newSet])
+#             if helpSum >= minimumNeeded:
+#                 setsOfUsefulHelpers.append(newSet.copy())
+#             else:
+#                 makeSetsOfUsefulHelpers(
+#                     setsOfUsefulHelpers, potentialHelpers[index + 1 :], newSet
+#                 )
+#         helper = newSet.pop()
+#
+#
+# setsOfUsefulHelpers = []
+# makeSetsOfUsefulHelpers(setsOfUsefulHelpers, potentialHelpers, [])
+# setsOfUsefulHelpers = sorted(
+#     setsOfUsefulHelpers, key=lambda set: sum([x["holdPriority"] for x in set])
+# )
+# for set in setsOfUsefulHelpers:
+#     print(str([f"{helper['name']} ({helper['holdPriority']})" for helper in set]))
+####
+# Main Game Loop
+####
+# for fkcCard in state.fkcDeck:
+#     if fkcCard.name == "The Flaming Raging Poisoning Sword of Doom":
+#         getPlayerCharacter("bard").addFkcCard(fkcCard)
+#         break
+if state.display:
+    for _ in range(state.runs):
+        while True:
+            displayGameState()
+            activeCards = getActiveCards()
+
+            pc = state.players[state.currentPlayer]
+            pcClass = pc.name
+
+            options = assembleOptions()
+            helper = (
+                ", ".join(helper.name for helper in options[0].helpers)
+                if options[0].helpers
+                else "(none)"
+            )
+            # testing
+            for option in options:
+                print(
+                    f"\t* {option.name} with helpers {str([helper.name for helper in option.helpers])}: priority {option.priority:.2f}, success {option.success:.2f}, failure {option.failure:.2f}"
+                )
+            print(
+                f"\n\nTaking action on \033[1m{options[0].name}\033[0m, helper = {helper}. Press enter to continue..."
+            )
+            if not state.skipPauses:
+                input()
+            options[0].takeAction()
+
+            displayHealth()
+            if state.won is not None:
+                if state.won:
+                    print("Win!")
+                    break
+                else:
+                    print("Loss!")
+                    break
+            print("Press enter to continue to the next player's turn.")
+            # print("Btw, current player's loot cards:")
+            # print(pc.lootCards)
+            if not state.skipPauses:
+                input()
+        reinitGame("game_setup.yaml")
+        print("Next Game...")
+        input()
+        # for _ in range(20):
+        #     print(
+        #         "################################################################################################################"
+        #     )
+        # sleep(1)
+else:
+    results = []
+
+    for i in range(state.runs):
+        result = {}
+        result["turnCount"] = 0
+        while True:
+            result["turnCount"] += 1
+            activeCards = getActiveCards()
+            options = assembleOptions()
+
+            options[0].takeAction()
+
+            if state.won is not None:
+                if state.won:
+                    result["won"] = True
+                    result["health"] = state.health
+                    results.append(result)
+                    break
+                else:
+                    result["won"] = False
+                    result["health"] = state.health
+                    results.append(result)
+                    break
+        if (i + 1) % 10 == 0:
+            winrate = (
+                100.0
+                * len([result for result in results if result["won"]])
+                / len(results)
+            )
+            print(f"{i + 1} ({winrate:.2f}% winrate)")
+
+        reinitGame("game_setup.yaml")
+
+    wins = len([result for result in results if result["won"]])
+    losses = len([result for result in results if not result["won"]])
+    turnCount = statistics.mean([result["turnCount"] for result in results])
+    tcStdev = statistics.stdev([result["turnCount"] for result in results])
+    print(f"Wins: {wins}, Losses: {losses}")
+    print(f"Average turn count: {turnCount:.2f} +- {tcStdev:.2f}")
 
 
 #####
