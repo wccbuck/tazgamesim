@@ -3,10 +3,10 @@ relic: staff
 location: cave
 skipPauses: False
 display: False
-runs: 48000
+runs: 50000
 players:
+    - priest
     - warrior
     - bard
     - rogue
     - wizard
-    - priest

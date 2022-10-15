@@ -199,8 +199,8 @@ def displayGameState():
     )
     print(
         f"|        {cardStrings[0].storyBonus}        |"
-        f"|        {cardStrings[2].storyBonus}        |"
         f"|        {cardStrings[1].storyBonus}        |"
+        f"|        {cardStrings[2].storyBonus}        |"
     )
     print(
         f"| {cardStrings[0].effect1} || {cardStrings[1].effect1} || {cardStrings[2].effect1} |"
@@ -436,7 +436,8 @@ else:
     turnCount = statistics.mean([result["turnCount"] for result in results])
     tcStdev = statistics.stdev([result["turnCount"] for result in results])
     print(f"Wins: {wins}, Losses: {losses}")
-    print(f"Average turn count: {turnCount:.2f} +- {tcStdev:.2f}")
+    print(f"Average turn count: {turnCount:.2f} ± {tcStdev:.2f}")
+    print("Lookahead")
 
 
 #####

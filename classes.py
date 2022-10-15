@@ -1315,16 +1315,14 @@ def getOutcomes(challenge, currentPlayerHasLoot2Card=False, localState=state):
     if challenge is None or (challenge.finale and challenge.difficulty == 0):
         return 0, 0
 
-    c1a, c1b = getDeckClearPriorities(challenge.currentDeck, localState)
-
     ntrf = localState.priorities["next turn relevance factor"]
 
     currentDeck = getDeckFromType(challenge.currentDeck)
 
     # might consider using priorities.yaml for loot priority
-    success = challenge.loot + c1a / (len(currentDeck) + c1b)
+    success = challenge.loot + getCardClearPriority(challenge.currentDeck, localState)
     if currentPlayerHasLoot2Card and challenge.loot == 2:
-        success = 1 + c1a / (len(currentDeck) + c1b)
+        success = 1 + getCardClearPriority(challenge.currentDeck, localState)
     failure = getDamagePriority(challenge.getDamage(), localState)
 
     # todo: put all of these in priorities.yaml
@@ -1334,9 +1332,12 @@ def getOutcomes(challenge, currentPlayerHasLoot2Card=False, localState=state):
         if localState.challengeDiscard:
             returnedCard = localState.challengeDiscard[-1]
             returnedDeck = getDeckFromType(returnedCard.decktype, localState)
-            c1a2, c1b2 = getDeckClearPriorities(returnedCard.currentDeck, localState)
-            simplifiedCurrentSuccess = c1a2 / (len(returnedDeck) + c1b2)
-            simplifiedFutureSuccess = c1a2 / (len(returnedDeck) + 1 + c1b2)
+            simplifiedCurrentSuccess = getCardClearPriority(
+                returnedCard.currentDeck, localstate, 0
+            )
+            simplifiedFutureSuccess = getCardClearPriority(
+                returnedCard.currentDeck, localstate, 1
+            )
             succeedEffectFactor = (
                 ntrf * 0.5 * (simplifiedFutureSuccess - simplifiedCurrentSuccess)
             )
@@ -1363,7 +1364,9 @@ def getOutcomes(challenge, currentPlayerHasLoot2Card=False, localState=state):
         # averaged cult/idol 2 cards, assumed 80% chance on front side
         # average 2 card is 2 points higher in difficulty (30% lower chance)
         # does 3 points of damage, and gives 1 more loot
-        avgBackSuccess = (challenge.loot + 1) + c1a / (len(currentDeck) + c1b)
+        avgBackSuccess = (challenge.loot + 1) + getCardClearPriority(
+            challenge.currentDeck, localstate
+        )
         avgBackFailure = getDamagePriority(3, localState)
         failEffectFactor = ntrf * (
             0.50 * (avgBackSuccess)
@@ -1462,7 +1465,7 @@ def getPriority(challenge, pc, helpers=None, lookAhead=True):
     rightSuccess, rightFailure = getOutcomes(rightCard, localState=localState)
 
     diffFactor = (
-        state.priorities["adjacent difficulty factor"]
+        state.priorities["next turn relevance factor"]
         * 0.15
         * (
             challenge.leftDiff * (leftSuccess - leftFailure)
@@ -1770,6 +1773,30 @@ def assembleOptions(localState=state, currentDeckName=""):
             print("No options possible! Skipping turn.")
         options.append(Option(None, pc))
     return options
+
+
+def getCardClearPriority(decktype, localState=state, addToDeck=0):
+    c1a = state.priorities["clear 1 card a"]
+    c1b = state.priorities["clear 1 card b"]
+
+    # villain deck length, relic deck length, location deck length
+    vdl = len(localState.villainDeck)
+    rdl = len(localState.relicDeck)
+    ldl = len(localState.locationDeck)
+
+    def inverseWithC1B(vdl, rdl, ldl):
+        return 1 / (rdl + min(vdl, ldl) + c1b)
+
+    if decktype == "villain":
+        startingValue = inverseWithC1B(vdl + addToDeck, rdl, ldl)
+        return c1a * (inverseWithC1B(vdl - 1 + addToDeck, rdl, ldl) - startingValue)
+    if decktype == "relic":
+        startingValue = inverseWithC1B(vdl, rdl + addToDeck, ldl)
+        return c1a * (inverseWithC1B(vdl, rdl - 1 + addToDeck, ldl) - startingValue)
+    if decktype == "location":
+        startingValue = inverseWithC1B(vdl, rdl, ldl + addToDeck)
+        return c1a * (inverseWithC1B(vdl, rdl, ldl - 1 + addToDeck) - startingValue)
+    return None
 
 
 def getHealthChangePriority(oldHealth, newHealth):
