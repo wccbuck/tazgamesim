@@ -158,17 +158,30 @@ class PlayerCharacter:
             self.addFkcCard(fkcCard)
 
     def addLootCard(self, newLootCard):
-        if newLootCard.loot >= 3:
+        if newLootCard.loot > 3:
+            if (
+                self.lootCards
+                and sum([card.loot for card in self.lootCards]) + newLootCard.loot >= 6
+            ):
+                state.challengeDiscard.append(newLootCard)
+                while self.lootCards:
+                    state.challengeDiscard.append(self.lootCards.pop())
+                self.drawFkcCard()
+                self.drawFkcCard()
+            else:
+                state.challengeDiscard.append(newLootCard)
+                self.drawFkcCard()
+        if newLootCard.loot == 3:
             state.challengeDiscard.append(newLootCard)
             self.drawFkcCard()
         elif newLootCard.loot == 2:
             otherCard = None
             for lootCard in self.lootCards:
-                if lootCard.loot == 1:
+                if lootCard.loot == 2:
                     otherCard = lootCard
                     break
             for lootCard in self.lootCards:
-                if lootCard.loot == 2:
+                if lootCard.loot == 1:
                     otherCard = lootCard
                     break
             if otherCard is not None:
@@ -355,7 +368,7 @@ class SurpriseCard:
 
     def discardPriorityEOT(self):
         recoverPriority = getRecoverPriority(3)
-        # Should be 4.2 if healing from 7 to 10; 2.4 if healing from 8 to 10; 1.1 if healing from 9 to 10
+        # Should be 3.8 if healing from 7 to 10; 2.2 if healing from 8 to 10; 1.0 if healing from 9 to 10
 
         flipPriority = 0
         activeCards = getActiveCards()
@@ -469,7 +482,7 @@ class FKCCard:
 
     def discardPriorityEOT(self):
         recover3Priority = getRecoverPriority(3)
-        # Should be 4.2 if healing from 7 to 10; 2.4 if healing from 8 to 10; 1.1 if healing from 9 to 10
+        # Should be 3.8 if healing from 7 to 10; 2.2 if healing from 8 to 10; 1.0 if healing from 9 to 10
         recover2Priority = getRecoverPriority(2)
 
         regainTokenPriority = 0
@@ -1296,22 +1309,9 @@ def oneDeckClear(localState=state):
     return False
 
 
-def getDeckClearPriorities(decktype, localState):
-    c1a = state.priorities["clear 1 card a"]
-    if decktype == "relic":
-        c1a = c1a * 1.2
-    c1b = state.priorities["clear 1 card b"]
-    odc = oneDeckClear(localState)
-    if odc:
-        if (odc in ["villain", "location"] and decktype == "relic") or (odc == "relic"):
-            c1a = state.priorities["clear 1 card increased priority a"]
-            c1b = state.priorities["clear 1 card increased priority b"]
-        else:
-            c1a = state.priorities["clear 1 card reduced priority a"]
-    return c1a, c1b
-
-
-def getOutcomes(challenge, currentPlayerHasLoot2Card=False, localState=state):
+def getOutcomes(challenge, currentPlayerLoot=None, localState=state):
+    if currentPlayerLoot == None:
+        currentPlayerLoot = []
     if challenge is None or (challenge.finale and challenge.difficulty == 0):
         return 0, 0
 
@@ -1319,10 +1319,17 @@ def getOutcomes(challenge, currentPlayerHasLoot2Card=False, localState=state):
 
     currentDeck = getDeckFromType(challenge.currentDeck)
 
+    # this is to treat loot 2 cards on the board as loot 1 if the player
+    # already has a loot 2 card
+    currentPlayerHas2Loot = (
+        currentPlayerLoot and sum([card.loot for card in currentPlayerLoot]) == 2
+    )
     # might consider using priorities.yaml for loot priority
     success = challenge.loot + getCardClearPriority(challenge.currentDeck, localState)
-    if currentPlayerHasLoot2Card and challenge.loot == 2:
+    if currentPlayerHas2Loot and challenge.loot == 2:
         success = 1 + getCardClearPriority(challenge.currentDeck, localState)
+    if not currentPlayerHas2Loot and challenge.loot == 4:
+        success = 3 + getCardClearPriority(challenge.currentDeck, localState)
     failure = getDamagePriority(challenge.getDamage(), localState)
 
     # todo: put all of these in priorities.yaml
@@ -1432,7 +1439,12 @@ def getPriority(challenge, pc, helpers=None, lookAhead=True):
     holdPriorityHelpers = 0
     for helper in helpers:
         delta -= helper.getAssistBefore(challenge.icons)
-        holdPriorityHelpers += helper.getHoldPriority(localState=localState)
+        if (
+            not isinstance(helper, FKCCard)
+            or challenge.loot + sum([card.loot for card in pc.lootCards]) < 3
+            or len(pc.fkcCards) < 2
+        ):
+            holdPriorityHelpers += helper.getHoldPriority(localState=localState)
     if (
         "double assist" in challenge.icons
         and len(
@@ -1454,10 +1466,10 @@ def getPriority(challenge, pc, helpers=None, lookAhead=True):
         > 0
     ):
         delta -= 1
-    # this is to treat loot 2 cards on the board as loot 1 if the player
-    # already has a loot 2 card
-    currentPlayerHasLoot2Card = pc.lootCards and pc.lootCards[0].loot == 2
-    success, failure = getOutcomes(challenge, currentPlayerHasLoot2Card, localState)
+        if state.villain == "giant":
+            delta -= 1
+
+    success, failure = getOutcomes(challenge, pc.lootCards, localState)
     prob = getProbFromDelta(delta)
 
     leftCard, rightCard = getAdjacentCards(challenge, localState=localState)

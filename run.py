@@ -8,19 +8,6 @@ from classes import *
 
 initGame("game_setup.yaml")
 
-# maxNameLength = 0
-# cardName = ""
-# for deck in challengeDecks:
-#     for card in deck["cards"]:
-#         if len(card.name) > maxNameLength:
-#             maxNameLength = len(card.name)
-#             cardName = card.name
-#         if len(card.reverse.name) > maxNameLength:
-#             maxNameLength = len(card.reverse.name)
-#             cardName = card.reverse.name
-# print(f"Max card name length: {maxNameLength}")
-# print(f"({cardName})")
-
 ####
 # state.challengeDiscard.append(state.villainDeck.pop(0))
 # turnsRemaining = len(state.players) - 1 - state.currentPlayer
@@ -40,6 +27,25 @@ initGame("game_setup.yaml")
 # state.relicDeck[0].currentDeck = "relic"
 # state.relicDeck[0].reveal()
 # print(state.surprise.name, state.surprise.discardEffect)
+####
+####
+# Check for typos in challenge.yaml
+####
+# challengeDecks = []
+# with open("carddata/challenge.yaml", "r") as file:
+#     try:
+#         challengeDecks = yaml.safe_load(file)
+#     except yaml.YAMLError as exc:
+#         print(exc)
+# keys, icons = getUniqueChallengeDeckKeysAndIcons(challengeDecks)
+# keys.sort()
+# icons.sort()
+# print("Keys:")
+# for key in keys:
+#     print("\t" + key)
+# print("Icons:")
+# for icon in icons:
+#     print("\t" + icon)
 ####
 
 
@@ -437,7 +443,7 @@ else:
     tcStdev = statistics.stdev([result["turnCount"] for result in results])
     print(f"Wins: {wins}, Losses: {losses}")
     print(f"Average turn count: {turnCount:.2f} ± {tcStdev:.2f}")
-    print("Lookahead")
+    # print(state.priorities["clear 1 card a"])
 
 
 #####

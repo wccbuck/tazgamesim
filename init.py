@@ -41,7 +41,7 @@ def initDeck(url, type):
                 for index, card in enumerate(challengeCards):
                     if card.number == 2:
                         challengeCards[index] = card.reverse
-            if deck in ["staff", "idol", "cult"]:
+            if deck in ["staff", "idol", "cult", "ring", "sword"]:
                 finaleCard = challengeCards.pop()
                 random.shuffle(challengeCards)
                 challengeCards.append(finaleCard)
@@ -56,6 +56,28 @@ def getChallengeDeck(deckName, challengeDecks):
         if deck["name"] == deckName:
             challengeDeck = deck["cards"]
     return challengeDeck
+
+
+def getUniqueChallengeDeckKeysAndIcons(challengeDecks):
+    keys = []
+    icons = []
+    for deck in challengeDecks:
+        for card in deck["cards"]:
+            for key in card["front"].keys():
+                if key not in keys:
+                    keys.append(key)
+            if "icons" in card["front"].keys():
+                for icon in card["front"]["icons"]:
+                    if icon not in icons:
+                        icons.append(icon)
+            for key in card["back"].keys():
+                if key not in keys:
+                    keys.append(key)
+            if "icons" in card["back"].keys():
+                for icon in card["back"]["icons"]:
+                    if icon not in icons:
+                        icons.append(icon)
+    return keys, icons
 
 
 def initGame(url):

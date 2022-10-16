@@ -580,3 +580,606 @@
             finale: True
             leftDiff: -1
             rightDiff: -1
+- deck: "cult"
+  decktype: "villain"
+  cards:
+      - front:
+            name: "Masked Assassin"
+            difficulty: 8
+            rightDiff: 1
+            icons: ["monster", "trap", "no assist"]
+            number: 1
+            failEffect: "flip relic"
+            loot: 2
+            damage: 2
+        back:
+            name: "Unmasked Assassin"
+            difficulty: 8
+            damage: 2
+            number: 1
+            icons: ["monster"]
+      - front:
+            name: "Totally Jacked Priest"
+            difficulty: 9
+            icons: ["monster", "spooky"]
+            number: 1
+            damage: 2
+            loot: 2
+        back:
+            name: "Casket of Terrors"
+            difficulty: 9
+            rightDiff: 1
+            loot: 3
+            damage: 2
+            succeedEffect: "flip next"
+            number: 1
+            icons: ["trap", "spooky"]
+      - front:
+            name: "Cheerful Confessor"
+            difficulty: 9
+            icons: ["magic", "monster"]
+            storyBonus: 1
+            number: 1
+            succeedEffect: "flip next"
+        back:
+            name: "Three-headed Deacon"
+            difficulty: 11
+            damage: 2
+            loot: 2
+            number: 2
+            icons: ["spooky", "monster"]
+      - front:
+            name: "Skulking Cultists"
+            difficulty: 8
+            icons: ["monster", "trap"]
+            number: 1
+            storyBonus: 1
+            succeedEffect: "flip next"
+        back:
+            name: "Big Weird Eyeball"
+            difficulty: 11
+            rightDiff: 1
+            loot: 2
+            damage: 4
+            number: 2
+            icons: ["spooky", "magic"]
+            failEffect: "discard after damage"
+      - front:
+            name: "Living Blade"
+            difficulty: 10
+            icons: ["spooky", "magic"]
+            number: 1
+            loot: 3
+            damage: 2
+        back:
+            name: "Cult Executive Officer"
+            difficulty: 10
+            loot: 2
+            damage: 2
+            number: 1
+            icons: ["monster", "magic"]
+            storyBonus: 1
+            succeedEffect: "flip relic"
+      - front:
+            name: "Creepy Summoning"
+            difficulty: 11
+            icons: ["magic", "spooky", "double assist"]
+            number: 1
+            loot: 2
+            failEffect: "flip self"
+        back:
+            name: "Ch'frabl'n"
+            difficulty: 13
+            loot: 3
+            damage: 3
+            number: 2
+            icons: ["monster", "spooky", "double assist"]
+      - front:
+            name: "Dissonant Choir"
+            difficulty: 13
+            rightDiff: 1
+            icons: ["spooky", "monster", "double assist"]
+            number: 1
+            loot: 2
+            storyBonus: 1
+            failEffect: "flip self"
+        back:
+            name: "Accursed Union of Souls"
+            difficulty: 12
+            loot: 2
+            damage: 3
+            number: 2
+            icons: ["magic", "spooky", "double assist"]
+      - front:
+            name: "Compelling Creed"
+            difficulty: 8
+            rightDiff: 1
+            icons: ["spooky", "trap"]
+            number: 1
+            damage: 2
+            storyBonus: 1
+            succeedEffect: "flip next"
+        back:
+            name: "Nightmare Stalker"
+            difficulty: 8
+            rightDiff: 1
+            damage: 2
+            number: 2
+            storyBonus: 1 #typo on card
+            icons: ["spooky", "trap", "no assist"]
+      - front:
+            name: "Volunteer Sacrifice"
+            difficulty: 7
+            number: 1
+            damage: 0
+            storyBonus: 1
+            failEffect: "flip self"
+        back:
+            name: "Nameless Horror"
+            difficulty: 12
+            loot: 2
+            icons: ["spooky", "monster", "double assist"]
+            damage: 3
+            number: 2
+            storyBonus: 1
+      - front:
+            name: "Doomsday Ritual"
+            difficulty: 13
+            icons: ["magic", "spooky", "double assist"]
+            loot: 3
+            damage: 10
+            finale: True
+            storyBonus: 1
+        back:
+            name: "The Cult"
+            difficulty: 0
+            finale: True
+            rightDiff: -1
+- deck: "dragon"
+  decktype: "villain"
+  cards:
+      - front:
+            name: "Take Cover!"
+            difficulty: 7
+            rightDiff: 1
+            icons: ["trap"]
+            number: 1
+            damage: 2
+            storyBonus: 1
+            failEffect: "discard after damage"
+        back:
+            name: "Basic Claw Swipe"
+            difficulty: 7
+            icons: ["monster"]
+            number: 1
+            loot: 2
+            damage: 3
+            failEffect: "discard after damage"
+      - front:
+            name: "Tail Whip"
+            difficulty: 8
+            icons: ["monster"]
+            number: 2
+            loot: 2
+            damage: 3
+            failEffect: "discard after damage"
+        back:
+            name: "Terrifying Roar"
+            difficulty: 9
+            rightDiff: 1
+            icons: ["spooky", "magic"]
+            number: 2
+            damage: 2
+            failEffect: "discard after damage"
+      - front:
+            name: "Malevolent Gaze"
+            difficulty: 10
+            icons: ["spooky", "magic"]
+            loot: 2
+            damage: 2
+            number: 3
+            failEffect: "discard after damage"
+        back:
+            name: "Soaring Dive"
+            difficulty: 8
+            icons: ["monster", "trap"]
+            loot: 2
+            damage: 4
+            number: 3
+            failEffect: "discard after damage"
+      - front:
+            name: "Place to Hide"
+            difficulty: 10
+            icons: ["trap", "double assist"]
+            loot: 2
+            damage: 4
+            number: 4
+            storyBonus: 1
+            failEffect: "discard after damage"
+        back:
+            name: "Falling Rubble"
+            difficulty: 9
+            rightDiff: 1
+            icons: ["double assist"]
+            loot: 3
+            damage: 4
+            number: 4
+            storyBonus: 1
+            failEffect: "discard after damage"
+      - front:
+            name: "Soothe the Beast"
+            difficulty: 10
+            icons: ["spooky", "magic", "double assist"]
+            loot: 2
+            damage: 3
+            number: 5
+            storyBonus: 1
+            failEffect: "discard after damage"
+        back:
+            name: "Offer Tribute"
+            difficulty: 11
+            icons: ["magic", "trap", "double assist"]
+            damage: 3
+            number: 5
+            effect: "can discard fkc card to succeed"
+            failEffect: "discard after damage"
+      - front:
+            name: "Huge Spout of Flame"
+            difficulty: 10
+            rightDiff: 2
+            icons: ["magic", "trap", "double assist"]
+            loot: 3
+            damage: 4
+            number: 6
+            failEffect: "discard after damage"
+        back:
+            name: "Raking Claws"
+            difficulty: 10
+            icons: ["monster"]
+            loot: 2
+            damage: 3
+            number: 6
+            failEffect: "discard after damage"
+      - front:
+            name: "Deadly Chomp!"
+            difficulty: 10
+            icons: ["monster", "trap"]
+            loot: 2
+            damage: 4
+            number: 7
+            failEffect: "discard after damage"
+        back:
+            name: "Ride the Dragon"
+            difficulty: 8
+            icons: ["monster", "trap", "no assist"]
+            loot: 2
+            damage: 3
+            number: 7
+            failEffect: "discard after damage"
+      - front:
+            name: "A Big Gun?!"
+            difficulty: 10
+            icons: ["monster"]
+            loot: 3
+            damage: 3
+            number: 8
+            failEffect: "discard after damage"
+        back:
+            name: "Panicked Crowds"
+            difficulty: 10
+            rightDiff: 1
+            icons: ["spooky", "trap", "double assist"]
+            loot: 2
+            damage: 3
+            number: 8
+            storyBonus: 1
+            failEffect: "discard after damage"
+      - front:
+            name: "A Second, Smaller Dragon"
+            difficulty: 12
+            rightDiff: 1
+            icons: ["monster", "double assist"]
+            loot: 3
+            damage: 4
+            number: 9
+            failEffect: "discard after damage"
+        back:
+            name: "Tiny Gap in the Armor"
+            difficulty: 10
+            icons: ["trap"]
+            loot: 2
+            damage: 2
+            number: 9
+            storyBonus: 1
+            failEffect: "discard after damage"
+      - front:
+            name: "Facing the Dragon"
+            difficulty: 13
+            icons: ["monster", "trap", "double assist"]
+            loot: 3
+            damage: 4
+            finale: True
+            effect: "spend action token to engage"
+        back:
+            name: "The Dragon"
+            difficulty: 0
+            rightDiff: -1
+            finale: True
+- deck: "giant"
+  decktype: "villain"
+  cards:
+      - front:
+            name: "Smelly Shoes"
+            difficulty: 7
+            icons: ["spooky", "trap"]
+            damage: 2
+            storyBonus: 1
+            number: 1
+        back:
+            name: "Shag Carpet"
+            difficulty: 7
+            icons: ["no dice", "monster", "double assist"]
+            number: 1
+      - front:
+            name: "Colossal Piano"
+            difficulty: 10
+            icons: ["trap", "magic", "double assist"]
+            number: 2
+            storyBonus: 1
+        back:
+            name: "Dust Bunnies"
+            difficulty: 9
+            icons: ["spooky", "monster"]
+            number: 2
+            damage: 2
+            storyBonus: 1
+      - front:
+            name: "Huge Bugs"
+            difficulty: 10
+            icons: ["monster", "double assist"]
+            storyBonus: 1
+            damage: 2
+            number: 3
+        back:
+            name: "Enormous Mousetrap"
+            difficulty: 10
+            icons: ["trap", "double assist"]
+            storyBonus: 1
+            loot: 2
+            number: 3
+      - front:
+            name: "Enormous Mouse"
+            difficulty: 10
+            icons: ["monster", "double assist"]
+            damage: 2
+            number: 4
+        back:
+            name: "Towering Refrigerator"
+            difficulty: 11
+            icons: ["trap", "magic", "double assist"]
+            storyBonus: 1
+            damage: 3
+            number: 4
+      - front:
+            name: "Giant's Toilet"
+            difficulty: 12
+            icons: ["spooky", "trap", "double assist"]
+            damage: 2
+            loot: 2
+            number: 5
+            storyBonus: 1
+        back:
+            name: "Kitchen Sink"
+            difficulty: 9
+            icons: ["monster", "magic", "trap"]
+            damage: 2
+            loot: 2
+            number: 5
+      - front:
+            name: "Feeling Small"
+            difficulty: 6
+            rightDiff: 1
+            icons: ["spooky", "no assist"]
+            storyBonus: 1
+            number: 6
+        back:
+            name: "Golden Goose"
+            difficulty: 8
+            icons: ["trap", "magic", "no assist"]
+            loot: 4
+            number: 6
+      - front:
+            name: "Titanic Spellbook"
+            difficulty: 8
+            icons: ["no dice", "magic", "double assist"]
+            loot: 3
+            number: 7
+        back:
+            name: "New Puppy"
+            difficulty: 12
+            icons: ["monster", "double assist"]
+            damage: 2
+            loot: 2
+            storyBonus: 1
+            number: 7
+      - front:
+            name: "Intimidating Catchphrase"
+            difficulty: 7
+            rightDiff: 1
+            icons: ["magic", "spooky", "no dice"]
+            storyBonus: 1
+            number: 8
+        back:
+            name: "Giant Ghost"
+            difficulty: 11
+            icons: ["spooky", "trap"]
+            loot: 2
+            damage: 2
+            number: 8
+      - front:
+            name: "Baby Giant"
+            difficulty: 13
+            icons: ["spooky", "monster", "double assist"]
+            loot: 2
+            damage: 3
+            storyBonus: 1
+            number: 9
+        back:
+            name: "Crushing Foot"
+            difficulty: 12
+            icons: ["trap", "monster", "double assist"]
+            damage: 3
+            loot: 3
+            number: 9
+      - front:
+            name: "Facing the Giant"
+            difficulty: 13
+            icons: ["monster", "double assist"]
+            loot: 3
+            damage: 3
+            finale: True
+        back:
+            name: "The Giant"
+            difficulty: 0
+            rightDiff: -1
+            finale: True
+- deck: "ring"
+  decktype: "relic"
+  cards:
+      - front:
+            name: "Impossible Test"
+            difficulty: 9
+            icons: ["magic"]
+            storyBonus: 1
+            effect: "spend action token to engage"
+            loot: 2
+            damage: 2
+        back:
+            name: "Painful Sacrifice"
+            difficulty: 8
+            icons: ["no assist"]
+            storyBonus: 1
+            effect: "can discard fkc card to succeed"
+            damage: 3
+      - front:
+            name: "Awkward Date"
+            difficulty: 8
+            rightDiff: 1
+            storyBonus: 1
+        back:
+            name: "Old Enemy"
+            difficulty: 9
+            icons: ["monster"]
+            storyBonus: 1
+            damage: 2
+      - front:
+            name: "Your Biggest Mistake"
+            difficulty: 9
+            leftDiff: 1
+            loot: 2
+            damage: 2
+            effect: "roll twice pick worst"
+            storyBonus: 1
+        back:
+            name: "Endless Boredom"
+            difficulty: 9
+            icons: ["double assist"]
+            storyBonus: 1
+      - front:
+            name: "Dating Game"
+            difficulty: 10
+            leftDiff: 1
+            icons: ["double assist"]
+            storyBonus: 1
+            loot: 2
+        back:
+            name: "The Perfect Crime"
+            difficulty: 10
+            rightDiff: 1
+            icons: ["trap"]
+            damage: 2
+            loot: 2
+            effect: "spend action token to engage"
+            storyBonus: 1
+      - front:
+            name: "Dance-Off"
+            difficulty: 9
+            leftDiff: 1
+            icons: ["trap"]
+            damage: 2
+            loot: 2
+            effect: "spend action token to engage"
+            storyBonus: 1
+        back:
+            name: "Guilt Trip"
+            difficulty: 10
+            icons: ["spooky"]
+            storyBonus: 1
+      - front:
+            name: "Awful Memory"
+            difficulty: 8
+            storyBonus: 1
+        back:
+            name: "Talent Show"
+            difficulty: 11
+            rightDiff: 1
+            icons: ["magic", "double assist"]
+            storyBonus: 1
+            effect: "spend action token to engage"
+            damage: 2
+            loot: 3
+      - front:
+            name: "Stage Fright"
+            difficulty: 10
+            rightDiff: 1
+            icons: ["double assist"]
+            storyBonus: 1
+            effect: "spend action token to engage"
+            loot: 2
+        back:
+            name: "Terrifying Monster"
+            difficulty: 10
+            leftDiff: 1
+            icons: ["monster"]
+            storyBonus: 1
+            loot: 2
+            damage: 2
+      - front:
+            name: "Embarrassing Situation"
+            difficulty: 9
+            storyBonus: 1
+        back:
+            name: "Personal Ghost"
+            difficulty: 10
+            icons: ["spooky"]
+            storyBonus: 1
+            damage: 2
+            loot: 2
+      - front:
+            name: "Your Worst Fear"
+            difficulty: 8
+            leftDiff: 1
+            icons: ["spooky", "no assist"]
+            storyBonus: 1
+            effect: "spend action token to engage"
+        back:
+            name: "Your Ex"
+            difficulty: 11
+            icons: ["spooky", "monster"]
+            storyBonus: 1
+            loot: 2
+            damage: 2
+      - front:
+            name: "Unbeatable Foe"
+            difficulty: 12
+            icons: ["spooky", "monster"]
+            loot: 3
+            damage: 2
+            finale: True
+            storyBonus: 1
+        back:
+            name: "The Ring"
+            difficulty: 0
+            leftDiff: -1
+            rightDiff: -1
+            finale: True
