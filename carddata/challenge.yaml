@@ -1183,3 +1183,313 @@
             leftDiff: -1
             rightDiff: -1
             finale: True
+- deck: "crew"
+  decktype: "villain"
+  cards:
+      - front:
+            name: "Gate Guards"
+            difficulty: 6
+            rightDiff: 1
+            icons: ["monster", "double assist"]
+            number: 1
+            damage: 2
+        back:
+            name: "Gullible Guards"
+            difficulty: 7
+            icons: ["spooky", "magic"]
+            number: 1
+            storyBonus: 1
+      - front:
+            name: "Clever Disguise"
+            difficulty: 4
+            icons: ["no dice", "no assist", "trap", "magic"]
+            storyBonus: 1
+            loot: 2
+            number: 2
+        back:
+            name: "Mob Scene"
+            difficulty: 4
+            rightDiff: 1
+            icons: ["chance", "monster", "trap"]
+            number: 2
+            loot: 2
+            damage: 2
+            defeatCounters: 1
+      - front:
+            name: "Dudes with Hatchets"
+            difficulty: 7
+            rightDiff: 1
+            icons: ["monster", "double assist"]
+            number: 3
+            loot: 2
+            damage: 2
+            defeatCounters: 1
+        back:
+            name: "Li'l Jerry"
+            difficulty: 8
+            icons: ["spooky", "magic"]
+            storyBonus: 1
+            number: 3
+      - front:
+            name: "Sorcerers in Training"
+            difficulty: 8
+            rightDiff: 1
+            icons: ["monster", "magic"]
+            defeatCounters: 1
+            loot: 2
+            damage: 2
+            number: 4
+        back:
+            name: "Mysterious Prisoner"
+            difficulty: 9
+            icons: ["spooky", "trap"]
+            storyBonus: 1
+            number: 4
+      - front:
+            name: "Zombie Gangsters"
+            difficulty: 8
+            rightDiff: 1
+            icons: ["spooky", "monster"]
+            defeatCounters: 1
+            loot: 2
+            number: 5
+        back:
+            name: "Regular Jerreeeeee"
+            difficulty: 9
+            icons: ["magic", "trap"]
+            storyBonus: 1
+            loot: 2
+            damage: 2
+            number: 5
+      - front:
+            name: "Action Montage"
+            difficulty: 6
+            icons: ["chance", "monster", "double assist"]
+            damage: 3
+            failEffect: "succeed after damage"
+            number: 6
+        back:
+            name: "Musical Number"
+            difficulty: 6
+            icons: ["no dice", "double assist"]
+            loot: 3
+            damage: 2
+            storyBonus: 1
+            number: 6
+      - front:
+            name: "Reckless Stunts"
+            difficulty: 7
+            rightDiff: 1
+            icons: ["chance", "monster", "trap"]
+            defeatCounters: 1
+            loot: 2
+            number: 7
+        back:
+            name: "Heartless Hank"
+            difficulty: 10
+            icons: ["spooky", "magic"]
+            storyBonus: 1
+            damage: 2
+            loot: 2
+            number: 7
+      - front:
+            name: "Betrayal"
+            difficulty: 7
+            icons: ["spooky", "trap", "double assist"]
+            number: 8
+            damage: 2
+            loot: 2
+            effect: "discard surprise on reveal"
+        back:
+            name: "Oncoming Train"
+            difficulty: 12
+            rightDiff: 1
+            icons: ["trap", "monster", "double assist"]
+            loot: 2
+            damage: 4
+            failEffect: "succeed after damage"
+            number: 8
+      - front:
+            name: "The Boss (warrior)"
+            difficulty: 9
+            icons: ["trap", "monster", "no assist"]
+            number: 9
+            loot: 3
+            damage: 2
+            storyBonus: 1
+        back:
+            name: "The Boss (wizard)"
+            difficulty: 9
+            icons: ["spooky", "magic", "no assist"]
+            number: 9
+            loot: 3
+            damage: 2
+            storyBonus: 1
+      - front:
+            name: "The Entire Crew"
+            difficulty: 8
+            rightDiff: 1
+            icons: ["chance", "monster", "double assist"]
+            defeatCounters: 1
+            loot: 3
+            damage: 2
+            finale: True
+        back:
+            name: "The Crew"
+            difficulty: 0
+            finale: True
+- deck: "tomb"
+  decktype: "location"
+  cards:
+      - front:
+            name: "Perilous Climb"
+            difficulty: 6
+            leftDiff: 1
+            icons: ["monster"]
+            effect: "roll twice pick worst"
+            damage: 2
+            number: 1
+        back:
+            name: "Creepy Cemetery"
+            difficulty: 7
+            icons: ["spooky", "trap"]
+            number: 1
+            loot: 2
+            storyBonus: 1
+      - front:
+            name: "Rib Cage"
+            difficulty: 9
+            leftDiff: 1
+            icons: ["spooky", "trap", "double assist"]
+            number: 2
+            damage: 2
+        back:
+            name: "Forgotten Labyrinth"
+            difficulty: 8
+            icons: ["magic", "trap"]
+            number: 2
+            storyBonus: 1
+      - front:
+            name: "Rusted Gate"
+            difficulty: 9
+            icons: ["monster", "double assist"]
+            number: 3
+        back:
+            name: "Glyph of Weakness"
+            difficulty: 7
+            leftDiff: 2
+            icons: ["magic", "trap"]
+            number: 3
+            damage: 0
+            loot: 2
+            effect: "roll twice pick worst"
+      - front:
+            name: "Whispering Wraiths"
+            difficulty: 9
+            leftDiff: 1
+            icons: ["spooky", "magic"]
+            number: 4
+            damage: 2
+            storyBonus: 1
+        back:
+            name: "Endless Doors"
+            difficulty: 8
+            icons: ["monster", "trap"]
+            number: 4
+            loot: 3
+            damage: 0
+            defeatCounters: 2
+      - front:
+            name: "Zombie Workshop"
+            difficulty: 10
+            icons: ["spooky", "monster"]
+            number: 5
+            storyBonus: 1
+            damage: 2
+        back:
+            name: "Hall of Traps"
+            difficulty: 10
+            icons: ["trap", "double assist"]
+            number: 5
+            loot: 2
+            damage: 3
+            storyBonus: 1
+      - front:
+            name: "Cursed Treasures"
+            difficulty: 9
+            icons: ["magic", "trap"]
+            number: 6
+            defeatCounters: 1
+            loot: 3
+            damage: 2
+        back:
+            name: "Sealed Vault"
+            difficulty: 11
+            icons: ["spooky", "trap"]
+            number: 6
+            storyBonus: 1
+            loot: 3
+      - front:
+            name: "Chamber of Secrets"
+            difficulty: 10
+            icons: ["spooky", "magic"]
+            number: 7
+            loot: 2
+            damage: 2
+            storyBonus: 1
+        back:
+            name: "Crushing Walls"
+            difficulty: 11
+            leftDiff: 1
+            icons: ["monster", "trap", "double assist"]
+            number: 7
+            damage: 0
+            loot: 3
+            failEffect: "damage up 1"
+      - front:
+            name: "Break Room"
+            difficulty: 11
+            icons: ["monster", "double assist"]
+            number: 8
+            storyBonus: 1
+            loot: 2
+            damage: 3
+        back:
+            name: "Sleeping Vampires"
+            difficulty: 11
+            leftDiff: 1
+            icons: ["spooky", "trap", "double assist"]
+            number: 8
+            storyBonus: 1
+            loot: 2
+            damage: 3
+      - front:
+            name: "Chilling Darkness"
+            difficulty: 11
+            leftDiff: 1
+            icons: ["spooky", "magic", "double assist"]
+            number: 9
+            effect: "roll twice pick worst"
+            loot: 2
+        back:
+            name: "Bone Throne"
+            difficulty: 12
+            icons: ["spooky", "monster"]
+            number: 9
+            storyBonus: 1
+            loot: 2
+            damage: 2
+      - front:
+            name: "Final Deathtrap"
+            difficulty: 10
+            leftDiff: 1
+            icons: ["magic", "trap", "double assist"]
+            loot: 3
+            damage: 2
+            finale: True
+            defeatCounters: 2
+        back:
+            name: "The Tomb"
+            difficulty: 0
+            finale: True
+            effect: "spooky or magic challenges -1 difficulty"

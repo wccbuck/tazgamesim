@@ -1,9 +1,9 @@
-villain: lich
+villain: crew
 relic: staff
 location: cave
 skipPauses: False
 display: True
-runs: 4000
+runs: 50000
 players:
     - priest
     - warrior

@@ -47,6 +47,41 @@ initGame("game_setup.yaml")
 # for icon in icons:
 #     print("\t" + icon)
 ####
+####
+# Get "average" relic card
+####
+# challengeDecks = []
+# with open("carddata/challenge.yaml", "r") as file:
+#     try:
+#         challengeDecks = yaml.safe_load(file)
+#     except yaml.YAMLError as exc:
+#         print(exc)
+#
+# count = 0
+# difficulty = 0
+# loot = 0
+# damage = 0
+# for deck in challengeDecks:
+#     if deck["decktype"] == "relic":
+#         for card in deck["cards"]:
+#             if not "finale" in card["front"].keys():
+#                 for side in ["front", "back"]:
+#                     count += 1
+#                     difficulty += card[side]["difficulty"]
+#                     if "storyBonus" in card[side].keys():
+#                         difficulty -= card[side]["storyBonus"]
+#                     if "loot" in card[side].keys():
+#                         loot += card[side]["loot"]
+#                     else:
+#                         loot += 1
+#                     if "damage" in card[side].keys():
+#                         damage += card[side]["damage"]
+#                     else:
+#                         damage += 1
+# print(f"Difficulty: {difficulty/count}")
+# print(f"Loot: {loot/count}")
+# print(f"Damage: {damage/count}")
+####
 
 
 def displayGameState():
@@ -123,6 +158,10 @@ def displayGameState():
                     cs.effect2 = cs.effect2 + word + " "
         cs.effect1 = f"{cs.effect1:^22}"
         cs.effect2 = f"{cs.effect2:^22}"
+        if cs.effect1.strip() == "":
+            if card.defeatCounters > 0:
+                cs.effect1 = f"defeatCounters: {card.currentDefeatCounters}"
+                cs.effect1 = f"{cs.effect1:^22}"
 
         cs.fail1 = "fail: " if card.failEffect else ""
         cs.fail2 = ""

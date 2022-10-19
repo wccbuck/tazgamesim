@@ -126,9 +126,20 @@ class PlayerCharacter:
             newFkcCard.pc = self
             self.fkcCards.append(newFkcCard)
         else:
-            # try to give the card to someone else
-            for player in state.players:
-                if player != self and (
+            # try to give the card to someone else;
+            # prioritize players who haven't gone yet
+            for i in range(state.currentPlayer + 1, len(state.players)):
+                player = state.players[i]
+                if (
+                    "no fkc card limit"
+                    in [fkcCard.ongoingEffect for fkcCard in player.fkcCards]
+                    or len(player.fkcCards) < 2
+                ):
+                    player.addFkcCard(newFkcCard)
+                    return
+            for i in range(0, state.currentPlayer):
+                player = state.players[i]
+                if (
                     "no fkc card limit"
                     in [fkcCard.ongoingEffect for fkcCard in player.fkcCards]
                     or len(player.fkcCards) < 2
@@ -250,7 +261,7 @@ class PlayerCharacter:
         myTurnIsComingUp = localState.currentPlayer < playerNumber
         if myTurnIsComingUp:
             n = 0
-            if self.name in ["wizard", "priest"]:
+            if self.name == "wizard":
                 n += 1
             if self.name == "warrior":
                 n += 0.5  # warrior's ability not as valuable
@@ -261,6 +272,8 @@ class PlayerCharacter:
             # holdPriority bonus = 1 when n = 1, approaches 2 as n increases
             # this is to indicate the value of saving your token until your turn
             holdPriority += (2 ** (1 - n)) * ((2**n) - 1)
+            if self.name == "priest":
+                holdPriority += getRecoverPriority(1)
 
         return holdPriority
 
@@ -288,6 +301,7 @@ class ChallengeCard:
         succeedEffect=None,
         number=0,
         storyBonus=0,
+        defeatCounters=0,
         finale=False,
     ):
         self.name = name
@@ -309,23 +323,59 @@ class ChallengeCard:
         self.reverse = reverse  # another ChallengeCard object
         self.number = number  # deck order number if relevant, or front/back
         self.storyBonus = storyBonus  # +1 if you add some story
+        self.defeatCounters = defeatCounters  # crew / tomb have these
+        self.currentDefeatCounters = defeatCounters
         self.finale = finale
         # currentDeck can change over course of game (e.g. Dark Lord)
         self.currentDeck = decktype
 
-    def reveal(self):
+    def reveal(self, localState=state):
         if "chance" in self.icons:
             self.diffMod += random.choice(range(1, 7))
-        if self.deck == "hoard" and self.effect == "add relic tokens to difficulty":
-            self.diffMod += state.relicTokens
+        if self.deck == "hoard" and self.effect == "add relic counters to difficulty":
+            self.diffMod += localState.relicCounters
+        if self.defeatCounters > 0:
+            self.currentDefeatCounters = self.defeatCounters
+        if self.effect == "discard surprise on reveal":
+            if localState.surprise is not None:
+                localState.surprise.discard()
 
     def getDifficulty(self):
-        return (
+        difficulty = (
             self.difficulty
             + self.diffMod
             + cardBoost(self.decktype, "left")
             + cardBoost(self.decktype, "right")
         )
+        activeChallengeCards = getActiveCards()
+        effects = [card.effect for card in activeChallengeCards if card != self]
+        if "spooky or magic challenges -1 difficulty" in effects and (
+            "spooky" in self.icons or "magic" in self.icons
+        ):
+            difficulty -= 1
+        if "monster or trap challenges +1 difficulty" in effects and (
+            "monster" in self.icons or "trap" in self.icons
+        ):
+            difficulty += 1
+        if "spooky or magic challenges +1 difficulty" in effects and (
+            "spooky" in self.icons or "magic" in self.icons
+        ):
+            difficulty += 1
+        if "spooky challenges -1 difficulty" in effects and "spooky" in self.icons:
+            difficulty -= 1
+        if "spooky challenges +1 difficulty" in effects and "spooky" in self.icons:
+            difficulty += 1
+        if "trap challenges +1 difficulty" in effects and "trap" in self.icons:
+            difficulty += 1
+        if "monster challenges +1 difficulty" in effects and "monster" in self.icons:
+            difficulty += 1
+        if "magic challenges +1 difficulty" in effects and "magic" in self.icons:
+            difficulty += 1
+        if "all challenges +1 difficulty" in effects:
+            difficulty += 1
+        if "monster challenges -2 difficulty" in effects and "monster" in self.icons:
+            difficulty -= 2
+        return difficulty
 
     def getDamage(self):
         return self.damage + self.damageMod
@@ -411,7 +461,9 @@ class SurpriseCard:
             and isinstance(currentDeck[1], SurpriseCard)
         ):
             # about to uncover another surprise card, might as well use this one
-            return 0
+            holdPriority = 0
+        if self.discardEffect == "+2 any die roll suffer 1 damage":
+            holdPriority -= getDamagePriority(1)
         return holdPriority
 
     def discard(self):
@@ -429,7 +481,9 @@ class SurpriseCard:
             newFkcCard = state.fkcDeck.pop()
             state.players[state.currentPlayer].addFkcCard(newFkcCard)
         if self.discardEffect == "flip any active challenge cards":
-            activeCards = activeCards()
+            # todo: include other flippable cards
+            # like chance cards with 5+ diffMods
+            activeCards = getActiveCards()
             for card in activeCards:
                 if (
                     card.deck in ["cult", "idol"]
@@ -439,6 +493,8 @@ class SurpriseCard:
                     card = card.reverse
         if self.discardEffect == "+2 any die roll suffer 1 damage":
             state.health -= 1
+            if state.health < 1:
+                state.won = False
 
     def getAssistAfter(self, icons=None):
         if icons == None:
@@ -614,17 +670,29 @@ class Option:
             self.priority, self.success, self.failure = getPriority(
                 card, pc, helpers, lookAhead
             )
-            if lookAhead and not oneDeckClear():  # look ahead one turn
+            # nextPlayer = state.currentPlayer + 1
+            # if nextPlayer >= len(state.players):
+            #     nextPlayer = 0
+            if (
+                lookAhead
+                and not oneDeckClear()
+                # and state.players[nextPlayer].name != "bard"
+            ):  # look ahead one turn
                 # adjudicate the action, assume success,
                 # update things in futureState, then generate Options (minus this one)
                 # and get the greatest priority of the next player.
                 # Add that to this priority.
+                # Don't consider the added options from current player if
+                # villain is Crew; it's too much.
                 copyState()
                 currentDeck = getDeckFromType(self.card.currentDeck)
+                currentDeckType = self.card.currentDeck
+                if self.card.currentDefeatCounters > 0:
+                    currentDeckType = ""
                 self.handleSuccessFutureState(currentDeck)
                 if not futureState.won:
                     futureOptions = assembleOptions(
-                        localState=futureState, currentDeckName=self.card.currentDeck
+                        localState=futureState, currentDeckType=currentDeckType
                     )
                     if futureOptions:
                         self.priority += (
@@ -637,6 +705,33 @@ class Option:
                 self.priority = 2.5
             if card.ongoingEffect == "recover 1 skip challenge":
                 self.priority = getRecoverPriority(1)
+            # if a challenge card is a "tribute" type card, where you can give up
+            # an fkc card to automatically succeed, it takes the form of:
+            # self.card = the fkc card to be discarded, and
+            # helpers[0] = the challenge card.
+            if (
+                isinstance(card, FKCCard)
+                and helpers
+                and isinstance(helpers[0], ChallengeCard)
+                and helpers[0].effect == "can discard fkc card to succeed"
+            ):
+                # priority = success
+                _, self.priority, _ = getPriority(helpers[0], pc, None, lookAhead)
+                self.priority -= card.getHoldPriority()
+                if lookAhead and not oneDeckClear():
+                    copyState()
+                    currentDeck = getDeckFromType(helpers[0].currentDeck)
+                    self.handleEndOfTurn(futureState)
+                    if not futureState.won:
+                        futureOptions = assembleOptions(
+                            localState=futureState,
+                            currentDeckType=helpers[0].currentDeck,
+                        )
+                        if futureOptions:
+                            self.priority += (
+                                state.priorities["next turn relevance factor"]
+                                * futureOptions[0].priority
+                            )
 
     def __eq__(self, obj):
         return self.priority == obj.priority
@@ -657,15 +752,27 @@ class Option:
         # Todo: add the rest
         if state.display:
             print("\033[92mSuccess!\033[0m\n")
-        self.card.diffMod = 0
-        self.card.damageMod = 0
         if self.card.finale:
             self.pc.drawFkcCard()
         if self.card.succeedEffect == "flip self" or self.card.finale:
-            currentDeck[0] = currentDeck[0].reverse
+            if self.card.currentDefeatCounters == 0:
+                self.card.diffMod = 0
+                self.card.damageMod = 0
+                currentDeck[0] = currentDeck[0].reverse
+            else:
+                self.card.currentDefeatCounters -= 1
+                self.handleEndOfTurn(clearedChallenge=self.card.deck)
+                return
         else:
-            currentDeck.remove(self.card)
-            self.pc.addLootCard(self.card)
+            if self.card.currentDefeatCounters == 0:
+                self.card.diffMod = 0
+                self.card.damageMod = 0
+                currentDeck.remove(self.card)
+                self.pc.addLootCard(self.card)
+            else:
+                self.card.currentDefeatCounters -= 1
+                self.handleEndOfTurn(clearedChallenge=self.card.deck)
+                return
         if self.card.succeedEffect == "flip next":
             if not currentDeck[0].finale:
                 currentDeck[0] = currentDeck[0].reverse
@@ -693,7 +800,7 @@ class Option:
                 returnedCard.reveal()
                 returnedDeck.insert(0, returnedCard)
         currentDeck[0].reveal()  # whether new card or flipped
-        self.handleEndOfTurn()
+        self.handleEndOfTurn(clearedChallenge=self.card.deck)
 
     def handleSuccessFutureState(self, currentDeck):
         for helper in self.helpers:
@@ -704,6 +811,9 @@ class Option:
                     getPlayerCharacter(self.pc.name, futureState).hasToken = False
                 if helper.name == "warrior ability":
                     futureState.health -= 1
+                    if futureState.health < 1:
+                        futureState.won = False
+                        return
                     getPlayerCharacter(self.pc.name, futureState).hasToken = False
             elif isinstance(helper, SurpriseCard):
                 futureState.surprise = None
@@ -718,38 +828,33 @@ class Option:
         if self.card.succeedEffect == "flip villain":
             if not futureState.villainDeck[0].finale:
                 futureState.villainDeck[0] = futureState.villainDeck[0].reverse
-                futureState.villainDeck[0].reveal()
+                futureState.villainDeck[0].reveal(futureState)
         if self.card.succeedEffect == "flip relic":
             if not futureState.relicDeck[0].finale:
                 futureState.relicDeck[0] = futureState.relicDeck[0].reverse
-                futureState.relicDeck[0].reveal()
+                futureState.relicDeck[0].reveal(futureState)
         if self.card.succeedEffect == "flip location":
             if not futureState.locationDeck[0].finale:
                 futureState.locationDeck[0] = futureState.locationDeck[0].reverse
-                futureState.locationDeck[0].reveal()
+                futureState.locationDeck[0].reveal(futureState)
+        if self.card.succeedEffect == "return top discarded challenge":
+            if futureState.challengeDiscard:
+                returnedCard = futureState.challengeDiscard.pop()
+                returnedDeck = getDeckFromType(returnedCard.decktype)
+                returnedCard.reveal(futureState)
+                returnedDeck.insert(0, returnedCard)
         self.handleEndOfTurn(futureState)
 
     def handleFailure(self, currentDeck):
         # TODO
         self.handleEndOfTurn()
 
-    def handleEndOfTurn(self, localState=state):
+    def handleEndOfTurn(self, localState=state, clearedChallenge=None):
         # Healing and other end-of-turn things
         # tokens first.
         # after that, consider end-of-turn discard effects
-        if (
-            localState.relicDeck[0].finale
-            and localState.relicDeck[0].difficulty == 0
-            and (
-                (
-                    localState.locationDeck[0].finale
-                    and localState.locationDeck[0].difficulty == 0
-                )
-                or (
-                    localState.villainDeck[0].finale
-                    and localState.villainDeck[0].difficulty == 0
-                )
-            )
+        if deckDefeated("relic") and (
+            deckDefeated("location") or deckDefeated("villain")
         ):
             localState.won = True
             return
@@ -796,7 +901,37 @@ class Option:
             if localState == state and state.display:
                 print(f"Discarding {localState.surprise.name}...")
             localState.surprise.discard()
-        nextPlayer(localState)
+
+        # restore tokens
+        getPlayerCharacter("bard", localState).hasToken = True
+
+        if (
+            localState == state
+            and state.villain == "crew"
+            and clearedChallenge is not None
+            and (clearedChallenge == "crew" or deckDefeated("villain"))
+        ):
+            # if the villain is crew, we need to determine whether we should
+            # advance to the next player or stay with the current one.
+            # This choice can occur when we clear a Crew challenge card,
+            # or any challenge card once we've defeated the Crew.
+            # No need to calculate best options for futureState;
+            # lookAhead in option init accounts for this
+
+            copyState()
+            currentDeck = getDeckFromType(self.card.currentDeck)
+
+            if not futureState.won:
+                futureOptionsSelf = assembleOptions(localState=futureState)
+                nextPlayer(futureState)
+                futureOptionsNext = assembleOptions(localState=futureState)
+
+                if futureOptionsSelf[0].priority < futureOptionsNext[0].priority:
+                    nextPlayer(localState)
+                elif state.display:
+                    print("Choosing not to advance to the next player.")
+        else:
+            nextPlayer(localState)
 
     def tryAfterRollHelpers(
         self, maxAssists, prob, adjustedDelta, diceroll, currentDeck, minimumNeeded
@@ -961,6 +1096,9 @@ class Option:
                     if helper.name == "warrior ability":
                         helperBonus += 2
                         state.health -= 1
+                        if state.health < 1:
+                            state.won = False
+                            return
                         self.pc.hasToken = False
                 else:
                     # Other helpers are FKC or Surprise cards to be discarded.
@@ -971,16 +1109,22 @@ class Option:
                         helper.discard()
                         self.handleSuccess(currentDeck)
                         return
-                    if helper.discardEffect == "+3 any die roll before":
-                        helperBonus += 3
+
                     if helper.discardEffect == "any challenge 50%":
                         useCoin = True
+
+                    helperBonus += helper.getAssistBefore(self.card.icons)
+                    # "assistAfter"s should only be used before the "roll" if "no dice"
+                    # is in the challenge card's icons. Any fkc/surprise helpers
+                    # that have getAssistAfter > 0 will only be added for "no dice" challenges
+
+                    helperBonus += helper.getAssistAfter(self.card.icons)
                     helper.discard()
 
             # small delta is good
             adjustedDelta = getDelta(self.card, self.pc) - helperBonus
-            prob = getProbFromDelta(adjustedDelta)
 
+            prob = getProbFromDelta(adjustedDelta)
             diceroll = random.random()
             if useCoin:
                 diceroll = random.choice([0.95, 0.05])
@@ -993,7 +1137,9 @@ class Option:
             if self.card.effect == "spend action token to engage":
                 self.pc.hasToken = False
 
-            if diceroll < prob:
+            if ("no dice" not in self.card.icons and diceroll < prob) or (
+                "no dice" in self.card.icons and adjustedDelta < 1
+            ):
                 # Success
                 self.handleSuccess(currentDeck)
             else:
@@ -1006,40 +1152,41 @@ class Option:
                 # the difference in outcomes to the priority of keeping
                 # a card or token.
 
-                # first try scoundrels dice
-                scoundrelsDice = None
-                for player in state.players:
-                    scoundrelsDice = getCardFromOngoing("reroll any player", player)
+                if "no dice" not in self.card.icons:
+                    # first try scoundrels dice
+                    scoundrelsDice = None
+                    for player in state.players:
+                        scoundrelsDice = getCardFromOngoing("reroll any player", player)
+                        if scoundrelsDice is not None:
+                            break
                     if scoundrelsDice is not None:
-                        break
-                if scoundrelsDice is not None:
-                    if (
-                        self.priority > scoundrelsDice.getHoldPriority()
-                        and diceroll < 0.65
-                    ):
-                        if state.display:
-                            print("trying scoundrel's dice...")
-                        diceroll = random.random()
-                        scoundrelsDice.discard()
-                        if diceRoll < prob:
-                            self.handleSuccess(currentDeck)
-                            return
-                        else:
+                        if (
+                            self.priority > scoundrelsDice.getHoldPriority()
+                            and diceroll < 0.65
+                        ):
                             if state.display:
-                                print("no luck.")
-                if diceroll < 0.95:
+                                print("trying scoundrel's dice...")
+                            diceroll = random.random()
+                            scoundrelsDice.discard()
+                            if diceRoll < prob:
+                                self.handleSuccess(currentDeck)
+                                return
+                            else:
+                                if state.display:
+                                    print("no luck.")
+                    if diceroll < 0.95:
 
-                    minimumNeeded = math.ceil((diceroll - prob) / 0.15)
-                    helpersSuccessful = self.tryAfterRollHelpers(
-                        maxAssists,
-                        prob,
-                        adjustedDelta,
-                        diceroll,
-                        currentDeck,
-                        minimumNeeded,
-                    )
-                    if helpersSuccessful:
-                        return  # This turns failure into success
+                        minimumNeeded = math.ceil((diceroll - prob) / 0.15)
+                        helpersSuccessful = self.tryAfterRollHelpers(
+                            maxAssists,
+                            prob,
+                            adjustedDelta,
+                            diceroll,
+                            currentDeck,
+                            minimumNeeded,
+                        )
+                        if helpersSuccessful:
+                            return  # This turns failure into success
 
                 state.pendingDamage = self.card.getDamage()
                 pendingHealth = state.health - state.pendingDamage
@@ -1142,7 +1289,8 @@ class Option:
                     )
                     noDiscardPriority = getSurpriseOngoingPriority()
                     if (
-                        self.card.failEffect == "succeed after damage"
+                        self.card.failEffect
+                        in ["succeed after damage", "discard after damage"]
                         and len(currentDeck) > 1
                         and isinstance(currentDeck[1], SurpriseCard)
                     ):
@@ -1175,9 +1323,17 @@ class Option:
                     self.card.diffMod -= 2
                 if self.card.failEffect == "damage up 2":
                     self.card.damageMod += 2
+                if self.card.failEffect == "damage up 1":
+                    self.card.damageMod += 1
                 if self.card.failEffect == "succeed after damage":
                     currentDeck.remove(self.card)
                     self.pc.lootCards.append(self.card)
+                    self.card.diffMod = 0
+                    self.card.damageMod = 0
+                    currentDeck[0].reveal()
+                if self.card.failEffect == "discard after damage":
+                    currentDeck.remove(self.card)
+                    state.challengeDiscard.append(self.card)
                     self.card.diffMod = 0
                     self.card.damageMod = 0
                     currentDeck[0].reveal()
@@ -1185,12 +1341,23 @@ class Option:
                 self.handleEndOfTurn()
         else:
             # Not a challenge card
-            if self.card.discardEffect == "draw fkc card skip challenge":
+            if (
+                isinstance(self.card, FKCCard)
+                and self.helpers
+                and isinstance(self.helpers[0], ChallengeCard)
+                and self.helpers[0].effect == "can discard fkc card to succeed"
+            ):
+                self.card.discard(skipDiscardEffect=True)
+                self.card = self.helpers.pop()
+                currentDeck = getDeckFromType(self.card.currentDeck)
+                self.handleSuccess(currentDeck)
+            elif self.card.discardEffect == "draw fkc card skip challenge":
                 self.pc.drawFkcCard()
                 self.card.discard()
+                self.handleEndOfTurn()
             elif self.card.ongoingEffect == "recover 1 skip challenge":
                 state.health = min(state.health + 1, state.maxHealth)
-            self.handleEndOfTurn()
+                self.handleEndOfTurn()
 
 
 class Ability:
@@ -1209,6 +1376,9 @@ class Ability:
             return 3
         if self.name == "warrior ability":
             return 2
+        return 0
+
+    def getAssistAfter(self, icons):
         return 0
 
     def getHoldPriority(self, currentDeck=None, localState=state):
@@ -1298,12 +1468,34 @@ def getPlayerCharacter(name, localState=state):
     return None
 
 
+def deckDefeated(decktype, localState=state):
+    if (
+        decktype == "villain"
+        and localState.villainDeck[0].finale
+        and localState.villainDeck[0].difficulty == 0
+    ):
+        return True
+    if (
+        decktype == "relic"
+        and localState.relicDeck[0].finale
+        and localState.relicDeck[0].difficulty == 0
+    ):
+        return True
+    if (
+        decktype == "location"
+        and localState.locationDeck[0].finale
+        and localState.locationDeck[0].difficulty == 0
+    ):
+        return True
+    return False
+
+
 def oneDeckClear(localState=state):
-    if localState.villainDeck[0].finale and localState.villainDeck[0].difficulty == 0:
+    if deckDefeated("villain", localState):
         return "villain"
-    if localState.relicDeck[0].finale and localState.relicDeck[0].difficulty == 0:
+    if deckDefeated("relic", localState):
         return "relic"
-    if localState.locationDeck[0].finale and localState.locationDeck[0].difficulty == 0:
+    if deckDefeated("location", localState):
         return "location"
 
     return False
@@ -1364,8 +1556,13 @@ def getOutcomes(challenge, currentPlayerLoot=None, localState=state):
         failEffectFactor = chanceIncrease * (success - failure)
     if challenge.failEffect == "succeed after damage":
         failEffectFactor = success
+    if challenge.failEffect == "discard after damage":
+        failEffectFactor = getCardClearPriority(challenge.currentDeck, localState)
     if challenge.failEffect == "damage up 2":
         futureFailure = getDamagePriority(challenge.getDamage() + 2, localState)
+        failEffectFactor = ntrf * 0.5 * (futureFailure - failure)
+    if challenge.failEffect == "damage up 1":
+        futureFailure = getDamagePriority(challenge.getDamage() + 1, localState)
         failEffectFactor = ntrf * 0.5 * (futureFailure - failure)
     if challenge.failEffect == "flip self":
         # averaged cult/idol 2 cards, assumed 80% chance on front side
@@ -1417,60 +1614,56 @@ def getPriority(challenge, pc, helpers=None, lookAhead=True):
         localState = futureState
     if helpers is None:
         helpers = []
-    # delta = 0
-    # otherPCsBestDelta = 8
-    # for player in localState.players:
-    #     thisDelta = max(getDelta(challenge, player), 1)
-    #     if player == pc:
-    #         delta = thisDelta
-    #     else:
-    #         if thisDelta < otherPCsBestDelta:
-    #             otherPCsBestDelta = thisDelta
     delta = getDelta(challenge, pc)
-    # This is to better allocate players to challenges they specialize in
-    # If they really are great at this challenge compared to everyone else,
-    # the relativeProficiencyModifier is close to 2. If they're much worse
-    # at it than someone else, the modifier is close to 0.5.
-    # https://www.wolframalpha.com/input?i=plot+0.5+%2B+%281.5%29%2F%281%2B2%5E%282x%2B1%29%29%2C+x%3D-5..5
-    # relativeProficiencyModifier = 0.5 + 1.5 / (
-    #     1 + 2 ** (2 * (delta - otherPCsBestDelta) + 1)
-    # )
-    relativeProficiencyModifier = 1
     holdPriorityHelpers = 0
+    assists = 0
+    playerHelper = None
     for helper in helpers:
         delta -= helper.getAssistBefore(challenge.icons)
+        if isinstance(helper, FKCCard) or isinstance(helper, SurpriseCard):
+            delta -= helper.getAssistAfter(challenge.icons)
+        if isinstance(helper, PlayerCharacter):
+            assists += 1
+            playerHelper = helper
         if (
             not isinstance(helper, FKCCard)
             or challenge.loot + sum([card.loot for card in pc.lootCards]) < 3
             or len(pc.fkcCards) < 2
         ):
             holdPriorityHelpers += helper.getHoldPriority(localState=localState)
+    # this next bit is assuming we will use an after-roll assist if one is available.
+    # this assist will be worth 1 on average (2 if facing the Giant).
     if (
-        "double assist" in challenge.icons
-        and len(
-            [
-                True
-                for player in localState.players
-                if player.hasToken
-                and (
-                    "no assist"
-                    not in [fkcCard.ongoingEffect for fkcCard in player.fkcCards]
-                )
-                and (
-                    player != pc
-                    or "assist self"
-                    in [fkcCard.ongoingEffect for fkcCard in player.fkcCards]
-                )
-            ]
-        )
-        > 0
-    ):
+        ("double assist" in challenge.icons and assists < 2)
+        or ("no assist" not in challenge.icons and assists < 1)
+    ) and len(
+        [
+            True
+            for player in localState.players
+            if player.hasToken
+            and (
+                "no assist"
+                not in [fkcCard.ongoingEffect for fkcCard in player.fkcCards]
+            )
+            and (
+                player != pc
+                or "assist self"
+                in [fkcCard.ongoingEffect for fkcCard in player.fkcCards]
+            )
+            and player != playerHelper
+        ]
+    ) > 0:
         delta -= 1
         if state.villain == "giant":
             delta -= 1
 
     success, failure = getOutcomes(challenge, pc.lootCards, localState)
     prob = getProbFromDelta(delta)
+
+    if challenge.effect == "roll twice pick worst":
+        prob = prob * prob
+    if challenge.effect == "roll twice pick best":
+        prob = 1 - ((1 - prob) * (1 - prob))
 
     leftCard, rightCard = getAdjacentCards(challenge, localState=localState)
     leftSuccess, leftFailure = getOutcomes(leftCard, localState=localState)
@@ -1484,19 +1677,33 @@ def getPriority(challenge, pc, helpers=None, lookAhead=True):
             + challenge.rightDiff * (rightSuccess - rightFailure)
         )
     )
+    success += diffFactor
 
     if "win monster challenge" in [
         helper.discardEffect for helper in helpers if isinstance(helper, FKCCard)
     ]:
-        return success + diffFactor - holdPriorityHelpers, success, failure
+        return success - holdPriorityHelpers, success, failure
     if "any challenge 50%" in [
         helper.discardEffect for helper in helpers if isinstance(helper, FKCCard)
     ]:
         return (
-            0.5 * success + 0.5 * failure + diffFactor - holdPriorityHelpers,
+            0.5 * success + 0.5 * failure - holdPriorityHelpers,
             success,
             failure,
         )
+    if "no dice" in challenge.icons:
+        if delta < 1:
+            return (
+                success - holdPriorityHelpers,
+                success,
+                failure,
+            )
+        else:
+            return (
+                failure - holdPriorityHelpers,
+                success,
+                failure,
+            )
     ### testing
     # leftCardName = leftCard.name if leftCard is not None else "None"
     # rightCardName = rightCard.name if rightCard is not None else "None"
@@ -1505,10 +1712,7 @@ def getPriority(challenge, pc, helpers=None, lookAhead=True):
     ###
 
     return (
-        prob * relativeProficiencyModifier * success
-        + (1 - prob) * failure
-        + diffFactor
-        - holdPriorityHelpers,
+        prob * success + (1 - prob) * failure - holdPriorityHelpers,
         success,
         failure,
     )
@@ -1516,15 +1720,18 @@ def getPriority(challenge, pc, helpers=None, lookAhead=True):
 
 def nextPlayer(localState=state):
     localState.currentPlayer += 1
-    getPlayerCharacter("bard", localState).hasToken = True
     if localState.currentPlayer >= len(localState.players):
         localState.currentPlayer = 0
         for player in localState.players:
-            player.hasToken = True
+            player.hasToken = True  # bard tokens are handled elsewhere
 
 
-def getActiveCards():
-    return [state.villainDeck[0], state.relicDeck[0], state.locationDeck[0]]
+def getActiveCards(localState=state):
+    return [
+        localState.villainDeck[0],
+        localState.relicDeck[0],
+        localState.locationDeck[0],
+    ]
 
 
 def getNumberOfAssistOpportunities(turnsRemaining=3):
@@ -1564,19 +1771,34 @@ def getSurpriseOngoingPriority(any=False):
     return fkcCardOngoing * (1 + numPlayers * 0.2)
 
 
-def assembleOptions(localState=state, currentDeckName=""):
+def assembleOptions(localState=state, currentDeckType=""):
     options = []
-    activeCards = getActiveCards()
+    activeCards = getActiveCards(localState)
     lookAhead = localState == state
 
+    # if looking ahead, skip the deck the current player is considering.
+    # unless this player is bard and 'currentDeckType' is 'relic',
+    # because that will likely be the bard's best option.
     for card in activeCards:
-        if card.currentDeck == currentDeckName:
+        if card.currentDeck == currentDeckType:
             activeCards.remove(card)
             break
 
     pc = localState.players[localState.currentPlayer]
 
-    helpers = [
+    if currentDeckType == "relic" and pc.name == "bard":
+        activeCards.append(
+            ChallengeCard(
+                deck=state.relic,
+                decktype="relic",
+                name="[Generic Relic Card]",
+                difficulty=8,
+                loot=2,
+                damage=2,
+            )
+        )
+
+    beforeHelpers = [
         player
         for player in localState.players
         if (
@@ -1593,7 +1815,7 @@ def assembleOptions(localState=state, currentDeckName=""):
             )
         )
     ]
-    helpersAll = [
+    beforeHelpersAll = [
         player
         for player in localState.players
         if (
@@ -1634,13 +1856,18 @@ def assembleOptions(localState=state, currentDeckName=""):
         if fkcCard.ongoingEffect == "recover 1 skip challenge":
             options.append(Option(fkcCard, pc, lookAhead=lookAhead))
     for card in activeCards:
-        if not (
-            card.effect == "spend action token to engage" and not pc.hasToken
-        ) and not (card.finale and card.difficulty == 0):
+        if card.effect == "can discard fkc card to succeed" and pc.fkcCards:
+            for fkcCard in pc.fkcCards:
+                options.append(Option(fkcCard, pc, helpers=[card], lookAhead=lookAhead))
+        if (
+            not (card.effect == "spend action token to engage" and not pc.hasToken)
+            and not (card.finale and card.difficulty == 0)
+            and not "no dice" in card.icons
+        ):
             # consider the option of getting tokens back from Binicorn or Ring of Recall
             options.append(Option(card, pc, lookAhead=lookAhead))
             if "no assist" not in card.icons:
-                for helper in helpers:
+                for helper in beforeHelpers:
                     options.append(
                         Option(card, pc, helpers=[helper], lookAhead=lookAhead)
                     )
@@ -1665,7 +1892,7 @@ def assembleOptions(localState=state, currentDeckName=""):
                     )
                 )
                 if "no assist" not in card.icons:
-                    for helper in helpers:
+                    for helper in beforeHelpers:
                         options.append(
                             Option(
                                 card,
@@ -1691,7 +1918,7 @@ def assembleOptions(localState=state, currentDeckName=""):
                     )
                 )
                 if "no assist" not in card.icons:
-                    for helper in helpers:
+                    for helper in beforeHelpers:
                         options.append(
                             Option(
                                 card,
@@ -1706,7 +1933,7 @@ def assembleOptions(localState=state, currentDeckName=""):
                     Option(card, pc, helpers=[strengthPotion], lookAhead=lookAhead)
                 )
                 if "no assist" not in card.icons:
-                    for helper in helpers:
+                    for helper in beforeHelpers:
                         options.append(
                             Option(
                                 card,
@@ -1723,7 +1950,7 @@ def assembleOptions(localState=state, currentDeckName=""):
                     Option(card, pc, helpers=[swordOfDoom], lookAhead=lookAhead)
                 )
             if ringOfRecall is not None and "no assist" not in card.icons:
-                for helper in helpersAll:
+                for helper in beforeHelpersAll:
                     options.append(
                         Option(
                             card,
@@ -1738,7 +1965,7 @@ def assembleOptions(localState=state, currentDeckName=""):
                 and "no assist" not in card.icons
             ):
 
-                for helper in helpersAll:
+                for helper in beforeHelpersAll:
                     options.append(
                         Option(
                             card,
@@ -1747,8 +1974,10 @@ def assembleOptions(localState=state, currentDeckName=""):
                             lookAhead=lookAhead,
                         )
                     )
-        if (card.effect == "spend action token to engage" and not pc.hasToken) and not (
-            card.finale and card.difficulty == 0
+        if (
+            (card.effect == "spend action token to engage" and not pc.hasToken)
+            and not (card.finale and card.difficulty == 0)
+            and not "no dice" in card.icons
         ):
             if (
                 localState.surprise is not None
@@ -1757,7 +1986,7 @@ def assembleOptions(localState=state, currentDeckName=""):
                 options.append(
                     Option(card, pc, helpers=[localState.surprise], lookAhead=lookAhead)
                 )
-                for helper in helpersAll:
+                for helper in beforeHelpersAll:
                     options.append(
                         Option(
                             card,
@@ -1766,11 +1995,32 @@ def assembleOptions(localState=state, currentDeckName=""):
                             lookAhead=lookAhead,
                         )
                     )
+            if strengthPotion is not None:
+                options.append(
+                    Option(card, pc, helpers=[strengthPotion], lookAhead=lookAhead)
+                )
+                if "no assist" not in card.icons:
+                    for helper in beforeHelpers:
+                        options.append(
+                            Option(
+                                card,
+                                pc,
+                                helpers=[strengthPotion, helper],
+                                lookAhead=lookAhead,
+                            )
+                        )
+            if coin is not None:
+                options.append(Option(card, pc, helpers=[coin], lookAhead=lookAhead))
+
+            if swordOfDoom is not None and "monster" in card.icons:
+                options.append(
+                    Option(card, pc, helpers=[swordOfDoom], lookAhead=lookAhead)
+                )
             if ringOfRecall is not None:
                 options.append(
                     Option(card, pc, helpers=[ringOfRecall], lookAhead=lookAhead)
                 )
-                for helper in helpersAll:
+                for helper in beforeHelpersAll:
                     options.append(
                         Option(
                             card,
@@ -1779,6 +2029,154 @@ def assembleOptions(localState=state, currentDeckName=""):
                             lookAhead=lookAhead,
                         )
                     )
+        if "no dice" in card.icons and not (card.finale and card.difficulty == 0):
+            minimumNeeded = getDelta(card, pc)
+            if minimumNeeded <= 0:
+                options.append(Option(card, pc, lookAhead=lookAhead))
+            else:
+                currentDeck = getDeckFromType(card.currentDeck)
+                maxAssists = 1
+                if "double assist" in card.icons:
+                    maxAssists = 2
+                if "no assist" in card.icons:
+                    maxAssists = 0
+                assists = 0
+                potentialHelpers = []
+                if (
+                    (
+                        pc.name == "wizard"
+                        or (
+                            "can use other players abilities"
+                            in [fkcCard.ongoingEffect for fkcCard in pc.fkcCards]
+                            and "wizard" in [pc.name for pc in localState.players]
+                        )
+                    )
+                    and "monster" in card.icons
+                    and pc.hasToken
+                ):
+                    potentialHelpers.append(Ability("wizard ability", pc))
+                if (
+                    pc.name == "warrior"
+                    or (
+                        "can use other players abilities"
+                        in [fkcCard.ongoingEffect for fkcCard in pc.fkcCards]
+                        and "warrior" in [pc.name for pc in localState.players]
+                    )
+                ) and pc.hasToken:
+                    potentialHelpers.append(Ability("warrior ability", pc))
+                if localState.surprise is not None and (
+                    "any die roll" in localState.surprise.discardEffect
+                    or (
+                        "trap die roll" in localState.surprise.discardEffect
+                        and "trap" in card.icons
+                    )
+                    or (
+                        "monster die roll" in localState.surprise.discardEffect
+                        and "monster" in card.icons
+                    )
+                    or (
+                        "spooky die roll" in localState.surprise.discardEffect
+                        and "spooky" in card.icons
+                    )
+                    or (
+                        "magic die roll" in localState.surprise.discardEffect
+                        and "magic" in card.icons
+                    )
+                ):
+                    potentialHelpers.append(localState.surprise)
+                for fkcCard in pc.fkcCards:
+                    if "any die roll before" in fkcCard.discardEffect:
+                        potentialHelpers.append(fkcCard)
+                for player in localState.players:
+                    if (
+                        player.hasToken
+                        and (
+                            "no assist"
+                            not in [
+                                fkcCard.ongoingEffect for fkcCard in player.fkcCards
+                            ]
+                        )
+                        and (
+                            player != pc
+                            or "assist self"
+                            in [fkcCard.ongoingEffect for fkcCard in player.fkcCards]
+                        )
+                        and maxAssists > 0
+                    ):
+                        potentialHelpers.append(player)
+                    for fkcCard in player.fkcCards:
+                        if (
+                            "any die roll any player" in fkcCard.discardEffect
+                            or (
+                                "trap die roll any player" in fkcCard.discardEffect
+                                and "trap" in card.icons
+                            )
+                            or (
+                                "monster die roll any player" in fkcCard.discardEffect
+                                and "monster" in card.icons
+                            )
+                            or (
+                                "spooky die roll any player" in fkcCard.discardEffect
+                                and "spooky" in card.icons
+                            )
+                            or (
+                                "magic die roll any player" in fkcCard.discardEffect
+                                and "magic" in card.icons
+                            )
+                        ):
+                            potentialHelpers.append(fkcCard)
+
+                def makeSetsOfUsefulHelpers(
+                    setsOfUsefulHelpers, potentialHelpers, newSet
+                ):
+                    for index, potentialHelper in enumerate(potentialHelpers):
+                        newSet.append(potentialHelper)
+                        if (
+                            len(
+                                [
+                                    helper
+                                    for helper in newSet
+                                    if isinstance(helper, PlayerCharacter)
+                                ]
+                            )
+                            <= maxAssists
+                        ):
+                            helpSum = 0
+                            for helper in newSet:
+                                helpSum += helper.getAssistBefore(card.icons)
+                                if isinstance(helper, FKCCard) or isinstance(
+                                    helper, SurpriseCard
+                                ):
+                                    helpSum += helper.getAssistAfter(card.icons)
+                            if helpSum >= minimumNeeded:
+                                setsOfUsefulHelpers.append(newSet.copy())
+                            else:
+                                makeSetsOfUsefulHelpers(
+                                    setsOfUsefulHelpers,
+                                    potentialHelpers[index + 1 :],
+                                    newSet,
+                                )
+                        newSet.pop()
+
+                setsOfUsefulHelpers = []
+                makeSetsOfUsefulHelpers(setsOfUsefulHelpers, potentialHelpers, [])
+                setsOfUsefulHelpers = sorted(
+                    setsOfUsefulHelpers,
+                    key=lambda set: sum(
+                        [x.getHoldPriority(currentDeck=currentDeck) for x in set]
+                    ),
+                )
+
+                if setsOfUsefulHelpers:
+                    options.append(
+                        Option(
+                            card,
+                            pc,
+                            helpers=setsOfUsefulHelpers[0],
+                            lookAhead=lookAhead,
+                        )
+                    )
+
     options = sorted(options, reverse=True)
     if not options:
         if state.display:
@@ -1836,7 +2234,7 @@ def copyState():
     futureState.health = state.health
     futureState.maxHealth = state.maxHealth
     futureState.currentPlayer = state.currentPlayer
-    futureState.relicTokens = state.relicTokens
+    futureState.relicCounters = state.relicCounters
     futureState.pendingDamage = state.pendingDamage
     futureState.villainDeck = copy.deepcopy(state.villainDeck)
     futureState.relicDeck = copy.deepcopy(state.relicDeck)

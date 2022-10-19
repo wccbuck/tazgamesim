@@ -15,5 +15,5 @@ maxHealth = 10
 players = []  # list of PlayerCharacter objects
 currentPlayer = 0
 priorities = {}
-relicTokens = 0
+relicCounters = 0
 pendingDamage = 0

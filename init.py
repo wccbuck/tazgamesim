@@ -41,7 +41,7 @@ def initDeck(url, type):
                 for index, card in enumerate(challengeCards):
                     if card.number == 2:
                         challengeCards[index] = card.reverse
-            if deck in ["staff", "idol", "cult", "ring", "sword"]:
+            if deck in ["staff", "idol", "cult", "ring", "sword", "sash", "hoard"]:
                 finaleCard = challengeCards.pop()
                 random.shuffle(challengeCards)
                 challengeCards.append(finaleCard)
