@@ -9,26 +9,6 @@ from classes import *
 initGame("game_setup.yaml")
 
 ####
-# state.challengeDiscard.append(state.villainDeck.pop(0))
-# turnsRemaining = len(state.players) - 1 - state.currentPlayer
-# assistOpportunities = getNumberOfAssistOpportunities(turnsRemaining)
-# assistTokensAvailable = len([True for player in state.players if player.hasToken])
-# assistTokensExpended = len(state.players) - assistTokensAvailable
-# print(min(max(assistOpportunities - assistTokensAvailable, 0), assistTokensExpended))
-#
-# print(assistOpportunities, assistTokensAvailable, assistTokensExpended)
-####
-# state.health = 7
-# state.villainDeck.insert(0, state.surpriseDeck.pop())
-# state.villainDeck[0].currentDeck = "villain"
-# state.villainDeck[0].reveal()
-# print(state.surprise.name, state.surprise.discardEffect)
-# state.relicDeck.insert(0, state.surpriseDeck.pop())
-# state.relicDeck[0].currentDeck = "relic"
-# state.relicDeck[0].reveal()
-# print(state.surprise.name, state.surprise.discardEffect)
-####
-####
 # Check for typos in challenge.yaml
 ####
 # challengeDecks = []
@@ -70,6 +50,14 @@ initGame("game_setup.yaml")
 #                     difficulty += card[side]["difficulty"]
 #                     if "storyBonus" in card[side].keys():
 #                         difficulty -= card[side]["storyBonus"]
+#                     if (
+#                         "chance" in card[side].keys()
+#                         and "chance" in card[side]["icons"]
+#                     ) or (
+#                         "no dice" in card[side].keys()
+#                         and "no dice" in card[side]["icons"]
+#                     ):
+#                         difficulty += 3.5
 #                     if "loot" in card[side].keys():
 #                         loot += card[side]["loot"]
 #                     else:
@@ -179,6 +167,23 @@ def displayGameState():
                     cs.fail2 = cs.fail2 + word + " "
         cs.fail1 = f"{cs.fail1:^22}"
         cs.fail2 = f"{cs.fail2:^22}"
+        if cs.fail1.strip() == "":
+            cs.fail1 = "failAny: " if card.failAnyEffect else ""
+            cs.fail2 = ""
+            failWords = card.failAnyEffect.split(" ") if card.failAnyEffect else []
+            for word in failWords:
+                if word == failWords[-1]:  # last
+                    if len(cs.fail1 + word) <= 21:
+                        cs.fail1 = cs.fail1 + word
+                    else:
+                        cs.fail2 = cs.fail2 + word
+                else:
+                    if len(cs.fail1 + word + " ") <= 22:
+                        cs.fail1 = cs.fail1 + word + " "
+                    else:
+                        cs.fail2 = cs.fail2 + word + " "
+            cs.fail1 = f"{cs.fail1:^22}"
+            cs.fail2 = f"{cs.fail2:^22}"
 
         cs.succeed1 = "succeed: " if card.succeedEffect else ""
         cs.succeed2 = ""
@@ -335,65 +340,9 @@ def displayHealth():
 
 
 ####
-# Testing adding loot cards
-####
-# while True:
-#     displayGameState()
-#     activeCards = getActiveCards()
-#     pc = state.players[state.currentPlayer]
-#     fkcCards = ", ".join(card.name for card in pc.fkcCards)
-#     lootCards = ", ".join(f"{card.name} ({card.loot})" for card in pc.lootCards)
-#     print(f"{pc.name}'s loot cards:")
-#     print(lootCards)
-#     print(f"{pc.name}'s fkc cards:")
-#     print(fkcCards)
-#     index = random.choice(range(1, 3))
-#     print(f"Adding {activeCards[index].name} (loot {activeCards[index].loot}).")
-#     input()
-#     lootCard = getDeckFromType(activeCards[index].currentDeck).pop(0)
-#     pc.addLootCard(lootCard)
-####
-# Testing post-roll potential helpers
-####
-# minimumNeeded = 4
-# potentialHelpers = [
-#     {"name": "wow", "assist": 1, "pc": True, "holdPriority": 0},
-#     {"name": "yep", "assist": 1, "pc": False, "holdPriority": 1},
-#     {"name": "bob", "assist": 4, "pc": True, "holdPriority": 1.6},
-#     {"name": "foo", "assist": 2, "pc": False, "holdPriority": 1},
-#     {"name": "bar", "assist": 1, "pc": True, "holdPriority": 0.5},
-# ]
-# maxAssists = 1
-#
-#
-# def makeSetsOfUsefulHelpers(setsOfUsefulHelpers, potentialHelpers, newSet):
-#     for index, potentialHelper in enumerate(potentialHelpers):
-#         newSet.append(potentialHelper)
-#         if len([helper for helper in newSet if helper["pc"]]) <= maxAssists:
-#             helpSum = sum([helper["assist"] for helper in newSet])
-#             if helpSum >= minimumNeeded:
-#                 setsOfUsefulHelpers.append(newSet.copy())
-#             else:
-#                 makeSetsOfUsefulHelpers(
-#                     setsOfUsefulHelpers, potentialHelpers[index + 1 :], newSet
-#                 )
-#         helper = newSet.pop()
-#
-#
-# setsOfUsefulHelpers = []
-# makeSetsOfUsefulHelpers(setsOfUsefulHelpers, potentialHelpers, [])
-# setsOfUsefulHelpers = sorted(
-#     setsOfUsefulHelpers, key=lambda set: sum([x["holdPriority"] for x in set])
-# )
-# for set in setsOfUsefulHelpers:
-#     print(str([f"{helper['name']} ({helper['holdPriority']})" for helper in set]))
-####
 # Main Game Loop
 ####
-# for fkcCard in state.fkcDeck:
-#     if fkcCard.name == "The Flaming Raging Poisoning Sword of Doom":
-#         getPlayerCharacter("bard").addFkcCard(fkcCard)
-#         break
+
 if state.display:
     for _ in range(state.runs):
         while True:
@@ -405,14 +354,31 @@ if state.display:
 
             options = assembleOptions()
             helper = (
-                ", ".join(helper.name for helper in options[0].helpers)
+                ", ".join(
+                    (
+                        f"{helper.name} ({helper.quantity})"
+                        if hasattr(helper, "quantity")
+                        else helper.name
+                    )
+                    for helper in options[0].helpers
+                )
                 if options[0].helpers
                 else "(none)"
             )
             # testing
             for option in options:
+                optionhelpers = str(
+                    [
+                        (
+                            f"{helper.name} ({helper.quantity})"
+                            if hasattr(helper, "quantity")
+                            else helper.name
+                        )
+                        for helper in option.helpers
+                    ]
+                )
                 print(
-                    f"\t* {option.name} with helpers {str([helper.name for helper in option.helpers])}: priority {option.priority:.2f}, success {option.success:.2f}, failure {option.failure:.2f}"
+                    f"\t* {option.name} with helpers {optionhelpers}: priority {option.priority:.2f}, success {option.success:.2f}, failure {option.failure:.2f}"
                 )
             print(
                 f"\n\nTaking action on \033[1m{options[0].name}\033[0m, helper = {helper}. Press enter to continue..."
@@ -448,6 +414,7 @@ else:
     for i in range(state.runs):
         result = {}
         result["turnCount"] = 0
+
         while True:
             result["turnCount"] += 1
             activeCards = getActiveCards()
@@ -459,13 +426,12 @@ else:
                 if state.won:
                     result["won"] = True
                     result["health"] = state.health
-                    results.append(result)
-                    break
                 else:
                     result["won"] = False
                     result["health"] = state.health
-                    results.append(result)
-                    break
+
+                results.append(result)
+                break
         if (i + 1) % 10 == 0:
             winrate = (
                 100.0
@@ -482,7 +448,12 @@ else:
     tcStdev = statistics.stdev([result["turnCount"] for result in results])
     print(f"Wins: {wins}, Losses: {losses}")
     print(f"Average turn count: {turnCount:.2f} ± {tcStdev:.2f}")
-    # print(state.priorities["clear 1 card a"])
+    gameKey = f"{state.villain}-{state.relic}-{state.location}-"
+    playerList = [player.name for player in state.players]
+    playerList.sort()
+    playerListString = "-".join(playerList)
+    gameKey += playerListString
+    print(gameKey)
 
 
 #####

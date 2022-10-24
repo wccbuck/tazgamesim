@@ -139,6 +139,7 @@ def reinitGame(url):
     state.currentPlayer = 0
     state.relicTokens = 0
     state.pendingDamage = 0
+    state.relicCounters = 0
     state.won = None
     state.surpriseDeck = initDeck("carddata/surprise.yaml", "surprise")
     random.shuffle(state.surpriseDeck)

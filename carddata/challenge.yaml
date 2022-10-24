@@ -162,7 +162,7 @@
             damage: 3
             failEffect: "succeed after damage"
       - front:
-            name: "Secret Passage"
+            name: "Secret Passage (Cave)"
             difficulty: 7
             icons: ["trap", "magic"]
             number: 2
@@ -1493,3 +1493,724 @@
             difficulty: 0
             finale: True
             effect: "spooky or magic challenges -1 difficulty"
+- deck: "sword"
+  decktype: "relic"
+  cards:
+      - front:
+            name: "Slasher Movie"
+            difficulty: 9
+            icons: ["spooky", "trap"]
+            storyBonus: 1
+            damage: 2
+        back:
+            name: "Deep Cut"
+            difficulty: 8
+            icons: ["spooky", "magic"]
+            storyBonus: 1
+            loot: 2
+            damage: 2
+      - front:
+            name: "Living on the Edge"
+            difficulty: 10
+            icons: ["monster", "trap"]
+            effect: "roll twice pick best"
+            storyBonus: 1
+            damage: 2
+        back:
+            name: "Emotional Scars"
+            difficulty: 10
+            icons: ["spooky", "magic"]
+            storyBonus: 1
+            loot: 2
+            failAnyEffect: "damage up 1"
+      - front:
+            name: "Wounded Pride"
+            difficulty: 7
+            icons: ["spooky"]
+            storyBonus: 1
+            damage: 2
+        back:
+            name: "Injured Dignity"
+            difficulty: 5
+            icons: ["chance", "trap"]
+            storyBonus: 1
+            loot: 2
+      - front:
+            name: "Broken Heart"
+            difficulty: 4
+            icons: ["chance", "spooky"]
+            storyBonus: 1
+            loot: 2
+            damage: 3
+        back:
+            name: "Bleeding Heart"
+            difficulty: 10
+            icons: ["spooky", "trap"]
+            storyBonus: 1
+            loot: 2
+            damage: 3
+            effect: "can discard fkc card to succeed"
+      - front:
+            name: "Cut Off"
+            difficulty: 6
+            icons: ["no dice", "double assist"]
+            storyBonus: 1
+            loot: 2
+        back:
+            name: "Hemorrhaging Money"
+            difficulty: 9
+            icons: ["magic", "trap"]
+            storyBonus: 1
+            loot: 2
+            failEffect: "discard all loot"
+      - front:
+            name: "Slashed Prices"
+            difficulty: 8
+            icons: ["magic", "trap"]
+            storyBonus: 1
+            loot: 3
+            failEffect: "discard after damage"
+        back:
+            name: "Pain in the Ass"
+            difficulty: 7
+            icons: ["spooky", "monster"]
+            storyBonus: 1
+            loot: 0
+            damage: 2
+            succeedEffect: "recover 2"
+      - front:
+            name: "Stabbed in the Back"
+            difficulty: 8
+            icons: ["trap", "monster", "no assist"]
+            storyBonus: 1
+        back:
+            name: "Bad Haircut"
+            difficulty: 4
+            icons: ["chance"]
+            storyBonus: 1
+            loot: 2
+            damage: 3
+      - front:
+            name: "Losing Your Head"
+            difficulty: 9
+            icons: ["trap", "spooky"]
+            storyBonus: 1
+            damage: 3
+        back:
+            name: "Cut Down to Size"
+            difficulty: 11
+            icons: ["trap", "monster", "double assist"]
+            storyBonus: 1
+            loot: 2
+            damage: 2
+            failEffect: "all players discard action tokens"
+      - front:
+            name: "Unkindest Cut of All"
+            difficulty: 7
+            icons: ["spooky", "monster", "no assist"]
+            storyBonus: 1
+            loot: 2
+        back:
+            name: "Slash Fiction"
+            difficulty: 10
+            icons: ["spooky", "trap", "double assist"]
+            storyBonus: 1
+            loot: 3
+            damage: 2
+      - front:
+            name: "Mortal Wound"
+            difficulty: 10
+            icons: ["spooky", "magic", "no assist"]
+            storyBonus: 1
+            loot: 3
+            damage: 2
+            finale: True
+            effect: "can sac. up to 6 health for +1 before roll"
+        back:
+            name: "The Sword"
+            difficulty: 0
+            effect: "monster challenges -2 difficulty"
+            finale: True
+- deck: "hoard"
+  decktype: "relic"
+  cards:
+      - front:
+            name: "Carnivorous Chest"
+            difficulty: 10
+            icons: ["monster", "trap"]
+            loot: 3
+            damage: 3
+            effect: "on reveal current player discards 1 loot"
+        back:
+            name: "Secret Passage (Hoard)"
+            difficulty: 8
+            rightDiff: 1
+            icons: ["trap"]
+            succeedEffect: "flip location"
+      - front:
+            name: "Invisible Burglar"
+            difficulty: 7
+            icons: ["trap", "no assist"]
+            loot: 2
+            failEffect: "discard 1 loot"
+        back:
+            name: "Huge Pile of Coins"
+            difficulty: 10
+            icons: ["double assist"]
+            loot: 3
+      - front:
+            name: "Preachy Priest"
+            difficulty: 9
+            icons: ["spooky"]
+            storyBonus: 1
+            damage: 2
+        back:
+            name: "Delicate Vase"
+            difficulty: 8
+            leftDiff: 1
+            rightDiff: 1
+            icons: ["trap"]
+            failEffect: "discard after damage"
+            loot: 2
+      - front:
+            name: "Cool Mercenary"
+            difficulty: 10
+            leftDiff: 1
+            rightDiff: 1
+            icons: ["monster"]
+            loot: 2
+            damage: 2
+            effect: "can discard loot to flip"
+        back:
+            name: "Helpful Mercenary"
+            difficulty: 7
+            leftDiff: -1
+            rightDiff: -1
+            icons: ["monster"]
+            loot: 2
+            damage: 2
+            effect: "flip at end of turn"
+      - front:
+            name: "Bad Directions"
+            difficulty: 7
+            rightDiff: 1
+            failEffect: "flip location"
+        back:
+            name: "Wandering Merchant"
+            difficulty: 6
+            icons: ["trap"]
+            loot: 0
+            effect: "discard fkc card and draw new one"
+            # this effect is terrible so the sim doesn't even consider it
+      - front:
+            name: "Your Nemesis"
+            difficulty: 8
+            icons: ["monster"]
+            loot: 0
+            damage: 2
+            effect: "difficulty up 1 per relicCounter"
+            succeedEffect: "move down 2, relicCounters up 1"
+        back:
+            name: "Cursed Idol"
+            difficulty: 8
+            leftDiff: 1
+            rightDiff: 1
+            icons: ["spooky", "magic"]
+            effect: "roll twice pick worst"
+            loot: 2
+            damage: 2
+      - front:
+            name: "Haunted Pantry"
+            difficulty: 10
+            leftDiff: 1
+            icons: ["spooky"]
+            storyBonus: 1
+            loot: 2
+            damage: 2
+        back:
+            name: "Famous Wizard"
+            difficulty: 10
+            rightDiff: 1
+            icons: ["magic"]
+            storyBonus: 1
+            loot: 2
+            damage: 2
+      - front:
+            name: "Reckless Barbarian"
+            difficulty: 11
+            leftDiff: 1
+            icons: ["monster"]
+            effect: "roll twice pick best"
+            loot: 2
+            damage: 3
+        back:
+            name: "Something From A Stone"
+            difficulty: 9
+            icons: ["magic", "trap", "no assist"]
+            loot: 3
+      - front:
+            name: "Gift Shop"
+            difficulty: 6
+            loot: 2
+            effect: "fkc cards cost 2, flip after use"
+            # this effect is terrible so the sim doesn't even consider it
+        back:
+            name: "Autograph Hounds"
+            difficulty: 9
+            leftDiff: 1
+            icons: ["monster", "double assist"]
+            effect: "difficulty up 1 per relicCounter"
+      - front:
+            name: "Spirit of Greed"
+            difficulty: 11
+            icons: ["magic", "spooky", "no assist"]
+            loot: 3
+            damage: 2
+            effect: "can discard fkc card for +2"
+            finale: True
+        back:
+            name: "The Hoard"
+            difficulty: 0
+            finale: True
+            effect: "fkc cards cost 2"
+- deck: "dark lord"
+  decktype: "villain"
+  cards:
+      - front:
+            name: "Gerblin Spy"
+            difficulty: 8
+            icons: ["monster", "trap"]
+            number: 1
+            damage: 2
+            storyBonus: 1
+        back:
+            name: "Gerblin Scouts"
+            difficulty: 6
+            rightDiff: 1
+            icons: ["monster"]
+            number: 1
+            damage: 2
+      - front:
+            name: "Smooth-Talkin' Gerblin"
+            difficulty: 7
+            icons: ["trap"]
+            number: 2
+            loot: 2
+            failEffect: "discard 1 loot"
+        back:
+            name: "Gerblin Mob"
+            difficulty: 9
+            icons: ["monster", "double assist"]
+            number: 2
+            damage: 3
+      - front:
+            name: "Dark Lord's Toady"
+            difficulty: 9
+            icons: ["monster", "magic"]
+            number: 3
+            loot: 2
+            damage: 2
+            storyBonus: 1
+        back:
+            name: "Gerblin Assassin"
+            difficulty: 7
+            icons: ["monster", "trap", "no assist"]
+            number: 3
+            damage: 2
+      - front:
+            name: "Snurfling Relic-Wraith"
+            difficulty: 9
+            icons: ["spooky", "magic"]
+            number: 4
+            loot: 2
+            damage: 2
+            storyBonus: 1
+        back:
+            name: "Gerblin Ghosts"
+            difficulty: 9
+            rightDiff: 1
+            icons: ["spooky", "double assist"]
+            number: 4
+            damage: 2
+      - front:
+            name: "Barrow Ghost"
+            difficulty: 10
+            icons: ["spooky", "trap"]
+            number: 5
+            loot: 2
+            damage: 2
+            storyBonus: 1
+        back:
+            name: "Hob-Gerblin Commander"
+            difficulty: 10
+            rightDiff: 1
+            icons: ["monster"]
+            number: 5
+            loot: 2
+            failEffect: "return gerblin"
+      - front:
+            name: "Annoying Elves"
+            difficulty: 10
+            rightDiff: 2
+            icons: ["magic", "trap"]
+            number: 6
+            loot: 3
+            damage: 2
+            storyBonus: 1
+        back:
+            name: "Bugbear Bard"
+            difficulty: 10
+            rightDiff: 1
+            icons: ["monster", "magic"]
+            number: 6
+            storyBonus: 1
+      - front:
+            name: "The Dark Lord's Gaze"
+            difficulty: 10
+            rightDiff: 1
+            icons: ["spooky", "magic"]
+            number: 7
+            failEffect: "return gerblin"
+        back:
+            name: "Big Troll"
+            difficulty: 9
+            icons: ["monster"]
+            number: 7
+            damage: 2
+      - front:
+            name: "Big Old Battering Ram"
+            difficulty: 11
+            rightDiff: 1
+            icons: ["magic", "trap"]
+            number: 8
+            storyBonus: 1
+            loot: 2
+            damage: 2
+        back:
+            name: "Even Bigger Troll"
+            difficulty: 11
+            icons: ["monster", "double assist"]
+            number: 8
+            loot: 2
+            damage: 2
+      - front:
+            name: "The Warlock-Queen"
+            difficulty: 12
+            icons: ["spooky", "magic"]
+            number: 9
+            loot: 2
+            damage: 2
+            storyBonus: 1
+        back:
+            name: "The Biggest Troll"
+            difficulty: 12
+            icons: ["monster", "double assist"]
+            number: 9
+            loot: 2
+            damage: 3
+      - front:
+            name: "Facing the Dark Lord"
+            difficulty: 14
+            icons: ["spooky", "monster", "double assist"]
+            loot: 3
+            damage: 3
+            finale: True
+            effect: "roll twice pick best"
+        back:
+            name: "The Dark Lord"
+            difficulty: 0
+            rightDiff: -1
+            finale: True
+- deck: "train"
+  decktype: "location"
+  cards:
+      - front:
+            name: "Ticket Counter"
+            difficulty: 5
+            number: 1
+            loot: 2
+            failAnyEffect: "discard self"
+        back:
+            name: "Platform Six"
+            difficulty: 5
+            number: 1
+            failAnyEffect: "discard self"
+      - front:
+            name: "Bad Seats"
+            difficulty: 6
+            leftDiff: 1
+            number: 2
+            storyBonus: 1
+            failAnyEffect: "discard self"
+        back:
+            name: "The Conductor"
+            difficulty: 6
+            number: 2
+            loot: 2
+            storyBonus: 1
+            failAnyEffect: "discard self"
+      - front:
+            name: "Tiny Lavatory"
+            difficulty: 6
+            leftDiff: 1
+            icons: ["trap"]
+            number: 3
+            failAnyEffect: "discard self"
+        back:
+            name: "The Dining Car"
+            difficulty: 6
+            number: 3
+            loot: 2
+            storyBonus: 1
+            failAnyEffect: "discard self"
+      - front:
+            name: "Fabulous View"
+            difficulty: 6
+            number: 4
+            storyBonus: 1
+            failAnyEffect: "discard self"
+        back:
+            name: "Pleasure Chamber"
+            difficulty: 6
+            icons: ["monster", "magic"]
+            number: 4
+            loot: 2
+            failAnyEffect: "discard self"
+      - front:
+            name: "Luxury Coach"
+            difficulty: 7
+            icons: ["trap"]
+            number: 5
+            loot: 3
+            effect: "trap challenges +1 difficulty"
+            failAnyEffect: "discard self"
+        back:
+            name: "Rooftop Chase"
+            difficulty: 6
+            number: 5
+            damage: 2
+            effect: "monster challenges +1 difficulty"
+            failAnyEffect: "discard self"
+      - front:
+            name: "Long Bridge"
+            difficulty: 5
+            number: 6
+            failAnyEffect: "discard self"
+        back:
+            name: "Dark Tunnel"
+            difficulty: 6
+            number: 6
+            effect: "all challenges +1 difficulty"
+            failAnyEffect: "discard self"
+      - front:
+            name: "Cargo Car"
+            difficulty: 7
+            icons: ["trap"]
+            number: 7
+            loot: 3
+            effect: "trap challenges +1 difficulty"
+            failAnyEffect: "discard self"
+        back:
+            name: "Between Cars"
+            difficulty: 7
+            number: 7
+            damage: 2
+            effect: "monster challenges +1 difficulty"
+            failAnyEffect: "discard self"
+      - front:
+            name: "Bumpy Ride"
+            difficulty: 5
+            number: 8
+            loot: 2
+            damage: 2
+            failAnyEffect: "discard self"
+        back:
+            name: "Sleeper Car"
+            difficulty: 5
+            loot: 3
+            number: 8
+            failAnyEffect: "discard self"
+      - front:
+            name: "Final Stretch"
+            difficulty: 6
+            number: 9
+            failAnyEffect: "discard self"
+        back:
+            name: "Caboose"
+            difficulty: 6
+            storyBonus: 1 # why??
+            number: 9
+            failAnyEffect: "discard self"
+      - front:
+            name: "End of the Line"
+            difficulty: 0
+            effect: "lose on reveal"
+            finale: True
+        back:
+            name: "End of the Line"
+            difficulty: 0
+            effect: "lose on reveal"
+            finale: True
+- deck: "race"
+  decktype: "location"
+  cards:
+      - front:
+            name: "Starting Guns"
+            difficulty: 5
+            number: 1
+            icons: ["trap"]
+            loot: 2
+            damage: 2
+            failAnyEffect: "discard self"
+        back:
+            name: "Thunderous Applause"
+            difficulty: 6
+            icons: ["double assist"]
+            number: 1
+            damage: 0
+            effect: "spooky challenges -1 difficulty"
+            failAnyEffect: "discard self"
+      - front:
+            name: "Velociraptors"
+            difficulty: 6
+            icons: ["monster"]
+            number: 2
+            damage: 2
+            effect: "monster challenges +1 difficulty"
+            failAnyEffect: "discard self"
+        back:
+            name: "Dangerous Jump"
+            difficulty: 6
+            icons: ["trap"]
+            number: 2
+            loot: 2
+            damage: 2
+            effect: "monster challenges +1 difficulty"
+            failAnyEffect: "discard self"
+      - front:
+            name: "Giant Gerbil Wheel"
+            difficulty: 6
+            icons: ["monster"]
+            number: 3
+            loot: 2
+            damage: 2
+            effect: "magic challenges +1 difficulty"
+            failAnyEffect: "discard self"
+        back:
+            name: "Awesome Stunt"
+            difficulty: 6
+            leftDiff: 1
+            icons: ["trap"]
+            number: 3
+            damage: 2
+            succeedEffect: "recover 2"
+            failAnyEffect: "discard self"
+      - front:
+            name: "Dramatic Fall"
+            difficulty: 6
+            number: 4
+            icons: ["trap"]
+            damage: 3
+            loot: 2
+            effect: "monster challenges +1 difficulty"
+            failAnyEffect: "discard self"
+        back:
+            name: "Haunted Wagon"
+            difficulty: 6
+            icons: ["spooky", "monster"]
+            number: 4
+            damage: 2
+            effect: "spooky challenges +1 difficulty"
+            failAnyEffect: "discard self"
+      - front:
+            name: "Emergency Repairs"
+            difficulty: 4
+            icons: ["magic", "trap"]
+            number: 5
+            loot: 0
+            damage: 0
+            succeedEffect: "recover 3"
+            failAnyEffect: "discard self"
+        back:
+            name: "Boarding Party"
+            difficulty: 7
+            icons: ["monster", "trap"]
+            number: 5
+            loot: 3
+            damage: 2
+            effect: "magic challenges +1 difficulty"
+            failAnyEffect: "discard self"
+      - front:
+            name: "Giant Octopus"
+            difficulty: 6
+            number: 6
+            icons: ["spooky", "monster"]
+            damage: 3
+            effect: "trap challenges +1 difficulty"
+            failAnyEffect: "discard self"
+        back:
+            name: "Minefield"
+            difficulty: 6
+            icons: ["no dice", "trap", "magic", "double assist"]
+            number: 6
+            damage: 2
+            effect: "monster challenges +1 difficulty"
+            failAnyEffect: "discard self"
+      - front:
+            name: "Big Ol' Boar"
+            difficulty: 7
+            leftDiff: 1
+            icons: ["monster"]
+            number: 7
+            damage: 3
+            failAnyEffect: "discard self"
+        back:
+            name: "Mysterious Crate"
+            difficulty: 5
+            icons: ["spooky", "magic"]
+            number: 7
+            loot: 3
+            failAnyEffect: "discard self"
+      - front:
+            name: "Big Red Button"
+            difficulty: 3
+            number: 8
+            loot: 3
+            damage: 0
+            failAnyEffect: "discard self"
+        back:
+            name: "Harpoon"
+            difficulty: 7
+            damage: 2
+            icons: ["trap"]
+            number: 8
+            effect: "monster or trap challenges +1 difficulty"
+            failAnyEffect: "discard self"
+      - front:
+            name: "Mind Control"
+            difficulty: 7
+            number: 9
+            icons: ["spooky", "magic"]
+            loot: 2
+            damage: 2
+            effect: "spooky or magic challenges +1 difficulty"
+            failAnyEffect: "discard self"
+        back:
+            name: "Shark Tank"
+            difficulty: 7
+            icons: ["monster"]
+            number: 9
+            loot: 2
+            damage: 2
+            effect: "monster challenges +1 difficulty"
+            failAnyEffect: "discard self"
+      - front:
+            name: "The Race"
+            difficulty: 0
+            effect: "lose on reveal"
+            finale: True
+        back:
+            name: "The Race"
+            difficulty: 0
+            effect: "lose on reveal"
+            finale: True
