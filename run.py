@@ -8,69 +8,6 @@ from classes import *
 
 initGame("game_setup.yaml")
 
-####
-# Check for typos in challenge.yaml
-####
-# challengeDecks = []
-# with open("carddata/challenge.yaml", "r") as file:
-#     try:
-#         challengeDecks = yaml.safe_load(file)
-#     except yaml.YAMLError as exc:
-#         print(exc)
-# keys, icons = getUniqueChallengeDeckKeysAndIcons(challengeDecks)
-# keys.sort()
-# icons.sort()
-# print("Keys:")
-# for key in keys:
-#     print("\t" + key)
-# print("Icons:")
-# for icon in icons:
-#     print("\t" + icon)
-####
-####
-# Get "average" relic card
-####
-# challengeDecks = []
-# with open("carddata/challenge.yaml", "r") as file:
-#     try:
-#         challengeDecks = yaml.safe_load(file)
-#     except yaml.YAMLError as exc:
-#         print(exc)
-#
-# count = 0
-# difficulty = 0
-# loot = 0
-# damage = 0
-# for deck in challengeDecks:
-#     if deck["decktype"] == "relic":
-#         for card in deck["cards"]:
-#             if not "finale" in card["front"].keys():
-#                 for side in ["front", "back"]:
-#                     count += 1
-#                     difficulty += card[side]["difficulty"]
-#                     if "storyBonus" in card[side].keys():
-#                         difficulty -= card[side]["storyBonus"]
-#                     if (
-#                         "chance" in card[side].keys()
-#                         and "chance" in card[side]["icons"]
-#                     ) or (
-#                         "no dice" in card[side].keys()
-#                         and "no dice" in card[side]["icons"]
-#                     ):
-#                         difficulty += 3.5
-#                     if "loot" in card[side].keys():
-#                         loot += card[side]["loot"]
-#                     else:
-#                         loot += 1
-#                     if "damage" in card[side].keys():
-#                         damage += card[side]["damage"]
-#                     else:
-#                         damage += 1
-# print(f"Difficulty: {difficulty/count}")
-# print(f"Loot: {loot/count}")
-# print(f"Damage: {damage/count}")
-####
-
 
 def displayGameState():
 
@@ -400,6 +337,7 @@ if state.display:
             # print(pc.lootCards)
             if not state.skipPauses:
                 input()
+
         reinitGame("game_setup.yaml")
         print("Next Game...")
         input()
@@ -411,94 +349,109 @@ if state.display:
 else:
     results = []
 
+    # forbiddenLocationCards = []
     for i in range(state.runs):
-        result = {}
-        result["turnCount"] = 0
+        try:
+            result = {}
+            result["turnCount"] = 0
+            while True:
+                result["turnCount"] += 1
+                options = assembleOptions()
 
-        while True:
-            result["turnCount"] += 1
-            activeCards = getActiveCards()
-            options = assembleOptions()
+                # if isinstance(options[0].card, ChallengeCard) and options[0].card.deck in [
+                #     "train",
+                #     "race",
+                # ]:
+                #     forbiddenLocationCards.append(options[0].card.number)
+                # else:
+                #     forbiddenLocationCards.append(-1)
+                options[0].takeAction()
 
-            options[0].takeAction()
-
-            if state.won is not None:
-                if state.won:
-                    result["won"] = True
+                if state.won is not None:
+                    if state.won:
+                        result["won"] = True
+                        result["clearedVillain"] = deckDefeated("villain")
+                        result["clearedLocation"] = deckDefeated("location")
+                    else:
+                        result["won"] = False
+                        if state.location in ["train", "race"]:
+                            # did we reach the end of the line
+                            result["trainRaceEOL"] = state.locationDeck[0].finale
                     result["health"] = state.health
-                else:
-                    result["won"] = False
-                    result["health"] = state.health
+                    results.append(result)
+                    break
+            if (i + 1) % 10 == 0:
+                winrate = (
+                    100.0
+                    * len([result for result in results if result["won"]])
+                    / len(results)
+                )
+                print(f"{i + 1} ({winrate:.2f}% winrate)")
 
-                results.append(result)
-                break
-        if (i + 1) % 10 == 0:
-            winrate = (
-                100.0
-                * len([result for result in results if result["won"]])
-                / len(results)
-            )
-            print(f"{i + 1} ({winrate:.2f}% winrate)")
-
-        reinitGame("game_setup.yaml")
+            reinitGame("game_setup.yaml")
+        except KeyboardInterrupt:
+            print(" >> keyboard interrupt")
+            break
 
     wins = len([result for result in results if result["won"]])
     losses = len([result for result in results if not result["won"]])
+    winrate = 100.0 * wins / len(results)
     turnCount = statistics.mean([result["turnCount"] for result in results])
     tcStdev = statistics.stdev([result["turnCount"] for result in results])
-    print(f"Wins: {wins}, Losses: {losses}")
+    villainWins = len(
+        [result for result in results if result["won"] and result["clearedVillain"]]
+    )
+    locationWins = len(
+        [result for result in results if result["won"] and result["clearedLocation"]]
+    )
+    completeWins = len(
+        [
+            result
+            for result in results
+            if result["won"] and result["clearedVillain"] and result["clearedLocation"]
+        ]
+    )
+    villainWinsPct = 100.0 * villainWins / wins
+    locationWinsPct = 100.0 * locationWins / wins
+    completeWinsPct = 100.0 * completeWins / wins
+    print("#####################")
+    print(f"Win rate: {winrate:.2f}%")
+    print(f"Wins: {wins}, Losses: {losses} (Total: {wins+losses})")
     print(f"Average turn count: {turnCount:.2f} ± {tcStdev:.2f}")
+    print(f"Percentage of wins where villain was defeated: {villainWinsPct:.2f}%")
+    print(f"Percentage of wins where location was cleared: {locationWinsPct:.2f}%")
+    print(
+        f"Percentage of wins where both villain and location were cleared: {completeWinsPct:.2f}%"
+    )
+    if state.location in ["train", "race"]:
+        eolLosses = len(
+            [
+                result
+                for result in results
+                if not result["won"] and result["trainRaceEOL"]
+            ]
+        )
+        eolLossesPct = 100.0 * eolLosses / losses
+        avgEOLHealth = statistics.mean(
+            [
+                result["health"]
+                for result in results
+                if not result["won"] and result["trainRaceEOL"]
+            ]
+        )
+        print(
+            f"Percentage of losses where we reached the end of the location deck: {eolLossesPct:.2f}%"
+        )
+        print(f"Average remaining health in those games: {avgEOLHealth:.2f}")
+    # print("Train/Race card numbers chosen for attempts:")
+    # for j in range(-1, 10):
+    #     jCount = len([cardnum for cardnum in forbiddenLocationCards if cardnum == j])
+    #     print(f"\t{j}:\t{jCount}")
     gameKey = f"{state.villain}-{state.relic}-{state.location}-"
     playerList = [player.name for player in state.players]
     playerList.sort()
     playerListString = "-".join(playerList)
     gameKey += playerListString
+    gameKey = gameKey.replace(" ", "")
+    print("\nKey for this game:")
     print(gameKey)
-
-
-#####
-
-# state.surprise = random.choice(surpriseCards)
-# print("surprise card: " + state.surprise.name)
-#
-#
-# print(pc.totalStrength(challengeCard))
-
-#####
-
-# print(len(fkcCards))
-#
-# fkcCard = random.choice(fkcCards)
-# print(fkcCard.name)
-
-
-# for fkcCard in fkcCards:
-#     if fkcCard.name == "Scoundrel's Dice":
-#         fkcCards.remove(fkcCard)
-#         pc.addFkcCard(fkcCard)
-#         break
-# print(pc.totalStrength(challengeCard))
-#
-# for fkcCard in fkcCards:
-#     if fkcCard.name == "Ring of Greed":
-#         fkcCards.remove(fkcCard)
-#         pc.addFkcCard(fkcCard)
-#         break
-# print(pc.totalStrength(challengeCard))
-
-####
-
-# for _ in range(4):
-#     random.shuffle(fkcCards)
-#     newFkcCard = fkcCards.pop()
-#     pc.addFkcCard(newFkcCard)
-#     for card in pc.fkcCards:
-#         print(card.name)
-#     print("---")
-
-#
-# sc1 = SurpriseCard(
-#     name="G'Nash Lends A Hand",
-#     ongoingBonusVS="monster",
-#     discardEffect="no damage after fail",
-# )

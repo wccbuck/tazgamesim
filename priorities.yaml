@@ -12,6 +12,6 @@ health change b: 0.5
 # priority factor for effects that change the landscape next turn
 next turn relevance factor: 0.7
 # how important is a fkc card's ongoing bonus
-ongoing bonus: 1.8
+ongoing bonus: 2
 # unless it's against any challenge
-ongoing bonus any: 3.2
+ongoing bonus any: 4

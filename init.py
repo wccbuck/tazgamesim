@@ -101,7 +101,9 @@ def initGame(url):
             gameSetupDict = yaml.safe_load(file)
         except yaml.YAMLError as exc:
             print(exc)
-    state.skipPauses = gameSetupDict["skipPauses"] == True
+    state.skipPauses = (
+        "skipPauses" in gameSetupDict and gameSetupDict["skipPauses"] == True
+    )
     state.display = gameSetupDict["display"] == True
     state.runs = gameSetupDict["runs"] or 1
     state.villain = gameSetupDict["villain"]
@@ -128,6 +130,19 @@ def initGame(url):
     random.shuffle(state.players)
     state.currentPlayer = 0
 
+    numPlayers = len(state.players)
+    state.maxHealth = {
+        3: 12,
+        4: 10,
+        5: 10,
+    }.get(numPlayers, 10)
+    state.health = state.maxHealth
+
+    state.trainRaceTokenHouseRule = (
+        "trainRaceTokenHouseRule" in gameSetupDict
+        and gameSetupDict["trainRaceTokenHouseRule"] == True
+    )
+
 
 def reinitGame(url):
 
@@ -135,7 +150,7 @@ def reinitGame(url):
     state.surpriseDiscard = []
     state.fkcDiscard = []
     state.surprise = None
-    state.health = 10
+    state.health = state.maxHealth
     state.currentPlayer = 0
     state.relicTokens = 0
     state.pendingDamage = 0

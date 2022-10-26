@@ -122,6 +122,8 @@ class PlayerCharacter:
                 return
             else:
                 # nobody can take this, just discard it.
+                if state.display:
+                    print(f"Discarding {newFkcCard.name}...")
                 newFkcCard.useDiscardAbility()
                 return
         if (
@@ -161,6 +163,8 @@ class PlayerCharacter:
                         > mostDiscardable.discardPriorityEOT()
                     ):
                         mostDiscardable = fkcCard
+                if state.display:
+                    print(f"Discarding {mostDiscardable.name}...")
                 mostDiscardable.useDiscardAbility()
             return
 
@@ -199,6 +203,8 @@ class PlayerCharacter:
             for fkcCard in self.fkcCards:
                 if fkcCard.discardPriorityEOT() > mostDiscardable.discardPriorityEOT():
                     mostDiscardable = fkcCard
+            if state.display:
+                print(f"Discarding {mostDiscardable.name}...")
             mostDiscardable.useDiscardAbility()
 
     def drawFkcCard(self):
@@ -295,6 +301,11 @@ class PlayerCharacter:
                 state.challengeDiscard.append(newLootCard)
                 self.drawFkcCard()
                 self.drawFkcCard()
+            elif newLootCard.loot == 3 and self.lootCards:
+                state.challengeDiscard.append(newLootCard)
+                state.challengeDiscard.append(self.lootCards.pop())
+                self.drawFkcCard()
+                self.drawFkcCard()
             elif newLootCard.loot in [3, 2]:
                 state.challengeDiscard.append(newLootCard)
                 self.drawFkcCard()
@@ -306,10 +317,8 @@ class PlayerCharacter:
                 else:
                     self.lootCards.append(newLootCard)
 
-    def getHoldTokenPriority(self, localState=state):
+    def getHoldTokenPriority(self, localState=state, aboutToGetTokensBack=False):
         # Priority for a given player to hold their token
-        # if not self.hasToken:
-        #     return 100
         if self.name == "bard":
             return -0.0001  # just so bard shows up first in priority
 
@@ -323,30 +332,35 @@ class PlayerCharacter:
 
         turnsRemaining = len(localState.players) - 1 - localState.currentPlayer
         assistOpportunities = getNumberOfAssistOpportunities(turnsRemaining, localState)
-        otherTokensAvailable = len(
+        tokensAvailable = len(
             [True for player in localState.players if player.hasToken]
         )
+        if aboutToGetTokensBack:
+            tokensAvailable = len(localState.players)
         holdPriority += (
             0.3
             * (self.getAssistBefore() + self.getAssistAfter())
-            * max(assistOpportunities - otherTokensAvailable, 0)
+            * max(assistOpportunities - tokensAvailable, 0)
         )
         myTurnIsComingUp = localState.currentPlayer < playerNumber
         if myTurnIsComingUp:
             n = 0
             if self.name == "wizard":
                 n += 1
-            if self.name == "warrior":
-                n += 0.5  # warrior's ability not as valuable
+            if self.name == "warrior" and getDamagePriority(1, localState) < 3:
+                n += 1
             for fkcCard in self.fkcCards:
-                if "spend token" in fkcCard.ongoingEffect:
+                if (
+                    "spend token" in fkcCard.ongoingEffect
+                    or fkcCard.ongoingEffect == "can use other players abilities"
+                ):
                     n += 1
 
             # holdPriority bonus = 1 when n = 1, approaches 2 as n increases
             # this is to indicate the value of saving your token until your turn
             holdPriority += (2 ** (1 - n)) * ((2**n) - 1)
             if self.name == "priest":
-                holdPriority += getRecoverPriority(1)
+                holdPriority += getRecoverPriority(1, localState)
 
         return holdPriority
 
@@ -431,6 +445,8 @@ class ChallengeCard:
                     while player.lootCards:
                         localState.challengeDiscard.append(player.lootCards.pop())
                     player.drawFkcCard()
+        if self.effect == "recover 3 on reveal":
+            localState.health = min(localState.health + 3, localState.maxHealth)
         if self.effect == "lose on reveal":
             localState.won = False
 
@@ -506,15 +522,21 @@ class SurpriseCard:
             state.surprise = self
         else:
             if self.discardPriorityEOT() > state.surprise.discardPriorityEOT():
+                if state.display:
+                    print(f"Discarding {self.name}...")
                 self.useDiscardAbility()
             else:
+                if state.display:
+                    print(f"Discarding {state.surprise.name}...")
                 state.surprise.useDiscardAbility()
                 state.surprise = self
         currentDeck[0].reveal()
 
     def discardPriorityEOT(self):
         recoverPriority = getRecoverPriority(3)
-        # Should be 3.8 if healing from 7 to 10; 2.2 if healing from 8 to 10; 1.0 if healing from 9 to 10
+        # Should be 3.8 if healing from 7 to 10;
+        # 2.2 if healing from 8 to 10;
+        # 1.0 if healing from 9 to 10
 
         flipPriority = 0
         activeCards = getActiveCards()
@@ -551,7 +573,9 @@ class SurpriseCard:
 
         return discardPriority
 
-    def getHoldPriority(self, currentDeck=None, localState=state):
+    def getHoldPriority(
+        self, currentDeck=None, localState=state, skipDiscardEffect=False
+    ):
         holdPriority = 0
         if "any" in self.ongoingBonusVS:
             holdPriority = getSurpriseOngoingPriority(any=True)
@@ -565,7 +589,19 @@ class SurpriseCard:
             # about to uncover another surprise card, might as well use this one
             holdPriority = 0
         if self.discardEffect == "+2 any die roll suffer 1 damage":
-            holdPriority -= getDamagePriority(1)
+            holdPriority -= getDamagePriority(1, localState)
+        if skipDiscardEffect:
+            discardEffectValue += {
+                "recover 3": getRecoverPriority(3, localState),
+                "draw fkc card": 3,
+                "draw fkc card skip challenge": 3,
+            }.get(self.discardEffect, 0)
+
+            holdPriority += discardEffectValue
+        if localState.relic == "sash" and not localState.relicDeck[0].finale:
+            # we can discard surprise to win sash finale
+            # todo: test win rates with/without this
+            holdPriority += 3
         return holdPriority
 
     def useDiscardAbility(self):
@@ -644,7 +680,9 @@ class FKCCard:
 
     def discardPriorityEOT(self):
         recover3Priority = getRecoverPriority(3)
-        # Should be 3.8 if healing from 7 to 10; 2.2 if healing from 8 to 10; 1.0 if healing from 9 to 10
+        # Should be 3.8 if healing from 7 to 10;
+        # 2.2 if healing from 8 to 10;
+        # 1.0 if healing from 9 to 10
         recover2Priority = getRecoverPriority(2)
 
         regainTokenPriority = 0
@@ -674,7 +712,9 @@ class FKCCard:
     ):
         ogba = state.priorities["ongoing bonus any"]
         ogb = state.priorities["ongoing bonus"]
-        recover3Priority = getRecoverPriority(3)
+        noDamageAfterFail = getHealthChangePriority(
+            max(localState.health - 3, 0), localState.health
+        )
 
         holdPriority = 0
         if "any" in self.ongoingBonusVS:
@@ -692,7 +732,7 @@ class FKCCard:
             "+2 trap die roll when spend token": ogb,
             "no assist": -3,
             "assist self": ogb,
-            "no damage after fail but discard this": recover3Priority,
+            "no damage after fail but discard this": noDamageAfterFail,
             "+1 assist any challenge": (ogba - ogb) / 3.0,
             "recover 1 skip challenge": 6,
             "spend token after fail reduce damage by 2 any player": 10,
@@ -718,6 +758,21 @@ class FKCCard:
             }.get(self.discardEffect, 0)
 
         holdPriority += discardEffectValue
+
+        # holdPriority drops if no one has room for new fkc cards
+        spotsOpen = False
+        for player in localState.players:
+            if (
+                "no fkc card limit"
+                in [fkcCard.ongoingEffect for fkcCard in player.fkcCards]
+                or len(player.fkcCards) < 2
+            ):
+                spotsOpen = True
+                break
+
+        if not spotsOpen:
+            holdPriority = holdPriority / 3.0
+
         return holdPriority
 
     def useDiscardAbility(self):
@@ -832,6 +887,11 @@ class Option:
                 and helpers
                 and isinstance(helpers[0], ChallengeCard)
                 and helpers[0].effect == "can discard fkc card to succeed"
+            ) or (
+                isinstance(card, SurpriseCard)
+                and helpers
+                and isinstance(helpers[0], ChallengeCard)
+                and helpers[0].effect == "can discard surprise to succeed"
             ):
                 # priority = success
                 _, self.priority, _ = getPriority(
@@ -1224,6 +1284,8 @@ class Option:
                     if isinstance(helper, PlayerCharacter):
                         helper.hasToken = False
                     else:
+                        if state.display:
+                            print(f"Discarding {helper.name}...")
                         helper.useDiscardAbility()
                 if state.display:
                     print("but with the help of...")
@@ -1500,6 +1562,8 @@ class Option:
                         # if we're about to unveil another surprise card anyway
                         noDiscardPriority = 0
                     if discardPriority > noDiscardPriority:
+                        if state.display:
+                            print(f"Discarding {state.surprise.name}...")
                         state.surprise.useDiscardAbility()
 
                 state.health = max(state.health - state.pendingDamage, 0)
@@ -1571,11 +1635,18 @@ class Option:
                     if card.failAnyEffect == "damage up 1":
                         card.damageMod += 1
                     if card.failAnyEffect == "discard self":
-                        state.locationDeck.remove(card)
-                        state.challengeDiscard.append(card)
-                        card.diffMod = 0
-                        card.damageMod = 0
-                        state.locationDeck[0].reveal()
+                        if not state.trainRaceTokenHouseRule or not (
+                            self.pc.hasToken
+                            and -1 * self.pc.getHoldPriority()
+                            > getCardClearPriority("location")
+                        ):
+                            state.locationDeck.remove(card)
+                            state.challengeDiscard.append(card)
+                            card.diffMod = 0
+                            card.damageMod = 0
+                            state.locationDeck[0].reveal()
+                        else:
+                            self.pc.hasToken = False
 
                 self.handleEndOfTurn()
         else:
@@ -1585,6 +1656,11 @@ class Option:
                 and self.helpers
                 and isinstance(self.helpers[0], ChallengeCard)
                 and self.helpers[0].effect == "can discard fkc card to succeed"
+            ) or (
+                isinstance(self.card, SurpriseCard)
+                and self.helpers
+                and isinstance(self.helpers[0], ChallengeCard)
+                and self.helpers[0].effect == "can discard surprise to succeed"
             ):
                 self.card.discard()
                 self.card = self.helpers.pop()
@@ -1615,7 +1691,7 @@ class Ability:
         return 0
 
     def getHoldPriority(self, currentDeck=None, localState=state):
-        holdPriority = self.pc.getHoldPriority()
+        holdPriority = self.pc.getHoldPriority(localState=localState)
         if self.name == "warrior ability":
             holdPriority += getHealthChangePriority(
                 max(localState.health - 1, 0), localState.health
@@ -1755,14 +1831,10 @@ def oneDeckClear(localState=state):
 
 def calculateOutcomes(
     challenge,
-    currentPlayerLoot=None,
-    currentPlayerFKCCards=None,
     localState=state,
 ):
-    if currentPlayerLoot == None:
-        currentPlayerLoot = []
-    if currentPlayerFKCCards == None:
-        currentPlayerFKCCards = []
+    pc = localState.players[localState.currentPlayer]
+
     if (
         challenge is None
         or isinstance(challenge, SurpriseCard)
@@ -1777,25 +1849,45 @@ def calculateOutcomes(
     # this is to treat loot 2 cards on the board as loot 1 if the player
     # already has a loot 2 card
     currentPlayerHas2Loot = (
-        currentPlayerLoot and sum([card.loot for card in currentPlayerLoot]) == 2
+        pc.lootCards and sum([card.loot for card in pc.lootCards]) == 2
     )
     # might consider using priorities.yaml for loot priority
-    # todo: hoard done effect
-    success = challenge.loot + getCardClearPriority(challenge.currentDeck, localState)
+
+    spotsOpen = False
+    for player in localState.players:
+        if (
+            "no fkc card limit"
+            in [fkcCard.ongoingEffect for fkcCard in player.fkcCards]
+            or len(player.fkcCards) < 2
+        ):
+            spotsOpen = True
+            break
+
+    lootValue = challenge.loot
     if currentPlayerHas2Loot and challenge.loot == 2:
-        success = 1 + getCardClearPriority(challenge.currentDeck, localState)
+        lootValue = 1
     if not currentPlayerHas2Loot and challenge.loot == 4:
-        success = 3 + getCardClearPriority(challenge.currentDeck, localState)
+        lootValue = 3
+    if (
+        localState.relicDeck[0].finale
+        and localState.relicDeck[0].effect == "fkc cards cost 2"
+    ):
+        lootValue = lootValue * 1.5
+    if not spotsOpen:
+        lootValue = lootValue / 3.0
+
+    success = lootValue + getCardClearPriority(challenge.currentDeck, localState)
+
     failure = getDamagePriority(challenge.getDamage(), localState)
     dmgAmt = challenge.getDamage()
     if "after fail reduce damage by 1" in [
-        fkcCard.ongoingEffect for fkcCard in currentPlayerFKCCards
+        fkcCard.ongoingEffect for fkcCard in pc.fkcCards
     ]:
         dmgAmt = max(challenge.getDamage() - 1, 0)
         failure = getDamagePriority(dmgAmt, localState)
 
     slippies = None
-    for fkcCard in currentPlayerFKCCards:
+    for fkcCard in pc.fkcCards:
         if "after fail reduce damage by 1" == fkcCard.ongoingEffect:
             slippies = fkcCard
             break
@@ -1823,11 +1915,11 @@ def calculateOutcomes(
         )
 
     if "no damage after fail any player" in [
-        fkcCard.ongoingEffect for fkcCard in currentPlayerFKCCards
+        fkcCard.ongoingEffect for fkcCard in pc.fkcCards
     ]:
         failure = min(state.priorities["ongoing bonus"], failure)
     if "no damage after fail but discard this" in [
-        fkcCard.ongoingEffect for fkcCard in currentPlayerFKCCards
+        fkcCard.ongoingEffect for fkcCard in pc.fkcCards
     ]:
         failure = state.priorities["ongoing bonus any"]
     # todo: put all of these in priorities.yaml
@@ -1850,6 +1942,11 @@ def calculateOutcomes(
             succeedEffectFactor += 1.5
         if localState.relicDeck[0].effect == "move down 2, relicCounters up 1":
             succeedEffectFactor += len(localState.relicDeck) / 2
+    if challenge.finale:
+        if challenge.reverse.effect == "recover 3 on reveal":
+            succeedEffectFactor += getRecoverPriority(3, localState)
+        else:
+            succeedEffectFactor += 2  # completed finales have good effects
 
     failEffectFactor = 0
     if challenge.failEffect == "difficulty down 2":
@@ -1873,9 +1970,9 @@ def calculateOutcomes(
         futureFailure = getDamagePriority(challenge.getDamage() + 1, localState)
         failEffectFactor = ntrf * 0.5 * (futureFailure - failure)
     if challenge.failEffect == "discard all loot":
-        failEffectFactor = -1 * sum([card.loot for card in currentPlayerLoot])
-    if challenge.failEffect == "discard 1 loot" and currentPlayerLoot:
-        failEffectFactor = -1 * min([card.loot for card in currentPlayerLoot])
+        failEffectFactor = -1 * sum([card.loot for card in pc.lootCards])
+    if challenge.failEffect == "discard 1 loot" and pc.lootCards:
+        failEffectFactor = -1 * min([card.loot for card in pc.lootCards])
     if challenge.failEffect == "flip self":
         # averaged cult/idol 2 cards, assumed 80% chance on front side
         # average 2 card is 2 points higher in difficulty (30% lower chance)
@@ -1908,7 +2005,13 @@ def calculateOutcomes(
             futureFailure = getDamagePriority(card.getDamage() + 1, localState)
             failEffectFactor += ntrf * 0.5 * (futureFailure - currentFailure)
         if card.failAnyEffect == "discard self":
-            failEffectFactor += getCardClearPriority(card.currentDeck, localState)
+            if state.trainRaceTokenHouseRule and pc.hasToken:
+                failEffectFactor += max(
+                    -1 * pc.getHoldPriority(localState),
+                    getCardClearPriority(card.currentDeck, localState),
+                )
+            else:
+                failEffectFactor += getCardClearPriority(card.currentDeck, localState)
 
     success += succeedEffectFactor
     failure += failEffectFactor
@@ -1934,9 +2037,7 @@ def getAllOutcomes(activeCards, lookAhead=True):
 
     allOutcomes = []
     for activeCard in activeCards:
-        success, failure = calculateOutcomes(
-            activeCard, pc.lootCards, pc.fkcCards, localState
-        )
+        success, failure = calculateOutcomes(activeCard, localState)
         allOutcomes.append({"card": activeCard, "success": success, "failure": failure})
     return allOutcomes
 
@@ -2022,7 +2123,12 @@ def getPriority(challenge, pc, allOutcomes, helpers=None, lookAhead=True):
             or challenge.loot + sum([card.loot for card in pc.lootCards]) < 3
             or len(pc.fkcCards) < 2
         ):
-            holdPriorityHelpers += helper.getHoldPriority(localState=localState)
+            if isinstance(helper, PlayerCharacter):
+                holdPriorityHelpers += helper.getHoldTokenPriority(
+                    localState=localState, aboutToGetTokensBack=tokensRestored
+                )
+            else:
+                holdPriorityHelpers += helper.getHoldPriority(localState=localState)
     # this next bit is assuming we will use an after-roll assist if one is available.
     # this assist will be worth 1 on average (2 if facing the Giant).
     if (
@@ -2058,7 +2164,7 @@ def getPriority(challenge, pc, allOutcomes, helpers=None, lookAhead=True):
     if (
         delta > 6
         and playerHelper is not None
-        and playerHelper.getHoldPriority(localState=localState) == 0
+        and localState.currentPlayer == len(localState.players) - 1
     ):
         mightAsWellTryFactor = 0.001 * playerHelper.getAssistBefore(challenge.icons)
 
@@ -2171,62 +2277,69 @@ def getPriority(challenge, pc, allOutcomes, helpers=None, lookAhead=True):
     locationCard = localState.locationDeck[0]
     if locationCard.failAnyEffect == "discard self":
         # if the location deck is train or race
-        relicSuccess, relicFailure = getOutcomes(localState.relicDeck[0], allOutcomes)
-        trainRaceDiffFactor = (
-            state.priorities["next turn relevance factor"]
-            * 0.15
-            * (locationCard.leftDiff * (relicSuccess - relicFailure))
-        )
+        if not state.trainRaceTokenHouseRule or not (
+            pc.hasToken
+            and -1 * pc.getHoldPriority(localState)
+            > getCardClearPriority("location", localState)
+        ):
+            relicSuccess, relicFailure = getOutcomes(
+                localState.relicDeck[0], allOutcomes
+            )
+            trainRaceDiffFactor = (
+                state.priorities["next turn relevance factor"]
+                * 0.15
+                * (locationCard.leftDiff * (relicSuccess - relicFailure))
+            )
 
-        # this is for ongoing passive bonuses to other challenge difficulties
-        bonusAmount = 0
-        bonusIcons = []
+            # this is for ongoing passive bonuses to other challenge difficulties
+            bonusAmount = 0
+            bonusIcons = []
 
-        if locationCard.effect == "spooky or magic challenges -1 difficulty":
-            bonusAmount = -1
-            bonusIcons = ["spooky", "magic"]
-        if locationCard.effect == "monster or trap challenges +1 difficulty":
-            bonusAmount = 1
-            bonusIcons = ["monster", "trap"]
-        if locationCard.effect == "spooky or magic challenges +1 difficulty":
-            bonusAmount = 1
-            bonusIcons = ["spooky", "magic"]
-        if locationCard.effect == "spooky challenges -1 difficulty":
-            bonusAmount = -1
-            bonusIcons = ["spooky"]
-        if locationCard.effect == "spooky challenges +1 difficulty":
-            bonusAmount = 1
-            bonusIcons = ["spooky"]
-        if locationCard.effect == "trap challenges +1 difficulty":
-            bonusAmount = 1
-            bonusIcons = ["trap"]
-        if locationCard.effect == "monster challenges +1 difficulty":
-            bonusAmount = 1
-            bonusIcons = ["monster"]
-        if locationCard.effect == "magic challenges +1 difficulty":
-            bonusAmount = 1
-            bonusIcons = ["magic"]
-        if locationCard.effect == "all challenges +1 difficulty":
-            bonusAmount = 1
-            bonusIcons = ["all"]
-        if locationCard.effect == "monster challenges -2 difficulty":
-            bonusAmount = -2
-            bonusIcons = ["monster"]
+            if locationCard.effect == "spooky or magic challenges -1 difficulty":
+                bonusAmount = -1
+                bonusIcons = ["spooky", "magic"]
+            if locationCard.effect == "monster or trap challenges +1 difficulty":
+                bonusAmount = 1
+                bonusIcons = ["monster", "trap"]
+            if locationCard.effect == "spooky or magic challenges +1 difficulty":
+                bonusAmount = 1
+                bonusIcons = ["spooky", "magic"]
+            if locationCard.effect == "spooky challenges -1 difficulty":
+                bonusAmount = -1
+                bonusIcons = ["spooky"]
+            if locationCard.effect == "spooky challenges +1 difficulty":
+                bonusAmount = 1
+                bonusIcons = ["spooky"]
+            if locationCard.effect == "trap challenges +1 difficulty":
+                bonusAmount = 1
+                bonusIcons = ["trap"]
+            if locationCard.effect == "monster challenges +1 difficulty":
+                bonusAmount = 1
+                bonusIcons = ["monster"]
+            if locationCard.effect == "magic challenges +1 difficulty":
+                bonusAmount = 1
+                bonusIcons = ["magic"]
+            if locationCard.effect == "all challenges +1 difficulty":
+                bonusAmount = 1
+                bonusIcons = ["all"]
+            if locationCard.effect == "monster challenges -2 difficulty":
+                bonusAmount = -2
+                bonusIcons = ["monster"]
 
-        if bonusAmount != 0:
-            for outcome in allOutcomes:
-                if outcome["card"] != locationCard and (
-                    "all" in bonusIcons
-                    or any(icon in outcome["card"].icons for icon in bonusIcons)
-                ):
-                    trainRaceDiffFactor += (
-                        state.priorities["next turn relevance factor"]
-                        * 0.15
-                        * bonusAmount
-                        * (outcome["success"] - outcome["failure"])
-                    )
+            if bonusAmount != 0:
+                for outcome in allOutcomes:
+                    if outcome["card"] != locationCard and (
+                        "all" in bonusIcons
+                        or any(icon in outcome["card"].icons for icon in bonusIcons)
+                    ):
+                        trainRaceDiffFactor += (
+                            state.priorities["next turn relevance factor"]
+                            * 0.15
+                            * bonusAmount
+                            * (outcome["success"] - outcome["failure"])
+                        )
 
-        failure += trainRaceDiffFactor
+            failure += trainRaceDiffFactor
     if "win monster challenge" in [
         helper.discardEffect for helper in helpers if isinstance(helper, FKCCard)
     ]:
@@ -2286,10 +2399,13 @@ def getActiveCards(localState=state):
 
 
 def getNumberOfAssistOpportunities(turnsRemaining=3, localState=state):
-    if turnsRemaining > 3:
-        turnsRemaining = 3
     activeCards = getActiveCards(localState)
+
     num = 0
+    if turnsRemaining > 3:
+        num = turnsRemaining - 3
+        turnsRemaining = 3
+
     while turnsRemaining > 0:
         foundCard = False
         for card in activeCards:
@@ -2302,7 +2418,12 @@ def getNumberOfAssistOpportunities(turnsRemaining=3, localState=state):
             turnsRemaining -= 1
             continue
         for card in activeCards:
-            if "no assist" not in card.icons:
+            if (
+                not isinstance(card, SurpriseCard)
+                and "no assist" not in card.icons
+                and not deckDefeated(card.decktype)
+                and card.deck not in ["train", "race"]
+            ):
                 num += 1 + (1 if card.effect == "spend action token to engage" else 0)
                 activeCards.remove(card)
                 break
@@ -2517,6 +2638,15 @@ def assembleOptions(localState=state, currentDeckType=""):
             activeCards.remove(card)
             break
 
+    for card in activeCards:
+        if (
+            card.currentDeck == "location"
+            and state.location in ["train", "race"]
+            and not (card.succeedEffect and "recover " in card.succeedEffect)
+        ):
+            activeCards.remove(card)
+            break
+
     pc = localState.players[localState.currentPlayer]
     if (
         currentDeckType == "villain"
@@ -2528,7 +2658,7 @@ def assembleOptions(localState=state, currentDeckType=""):
                 deck=state.villain,
                 decktype="villain",
                 name="[Generic Villain Card]",
-                difficulty=8,
+                difficulty=9,
                 loot=2,
                 damage=2,
             )
@@ -2637,6 +2767,17 @@ def assembleOptions(localState=state, currentDeckType=""):
                 options.append(
                     Option(
                         fkcCard, pc, allOutcomes, helpers=[card], lookAhead=lookAhead
+                    )
+                )
+        if card.effect == "can discard surprise to succeed" and pc.fkcCards:
+            if localState.surprise is not None:
+                options.append(
+                    Option(
+                        localState.surprise,
+                        pc,
+                        allOutcomes,
+                        helpers=[card],
+                        lookAhead=lookAhead,
                     )
                 )
         if (
@@ -3158,6 +3299,7 @@ def copyState():
     futureState.currentPlayer = state.currentPlayer
     futureState.relicCounters = state.relicCounters
     futureState.pendingDamage = state.pendingDamage
+    futureState.trainRaceTokenHouseRule = state.trainRaceTokenHouseRule
     futureState.villainDeck = copy.deepcopy(state.villainDeck)
     futureState.relicDeck = copy.deepcopy(state.relicDeck)
     futureState.locationDeck = copy.deepcopy(state.locationDeck)

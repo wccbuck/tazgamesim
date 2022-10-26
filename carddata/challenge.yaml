@@ -2214,3 +2214,438 @@
             difficulty: 0
             effect: "lose on reveal"
             finale: True
+- deck: "temple"
+  decktype: "location"
+  cards:
+      - front:
+            name: "Hidden Entrance"
+            difficulty: 8
+            icons: ["trap", "double assist"]
+            number: 1
+            damage: 2
+            storyBonus: 1
+            failEffect: "discard after damage"
+        back:
+            name: "Mysterious Omens"
+            difficulty: 8
+            icons: ["spooky", "magic"]
+            number: 1
+            damage: 2
+            storyBonus: 1
+            failEffect: "discard after damage"
+      - front:
+            name: "Snake Pit"
+            difficulty: 9
+            leftDiff: 1
+            icons: ["monster", "trap"]
+            number: 2
+            damage: 3
+            failEffect: "discard after damage"
+        back:
+            name: "Offering Box"
+            difficulty: 10
+            icons: ["spooky", "trap"]
+            number: 2
+            loot: 2
+            failEffect: "discard after damage"
+      - front:
+            name: "Maddening Organ"
+            difficulty: 10
+            leftDiff: 1
+            icons: ["spooky", "magic"]
+            number: 3
+            storyBonus: 1
+            failEffect: "discard after damage"
+        back:
+            name: "Bats In The Belfry"
+            difficulty: 10
+            icons: ["monster", "double assist"]
+            number: 3
+            damage: 2
+            failEffect: "discard after damage"
+      - front:
+            name: "Possessed Toilet"
+            difficulty: 8
+            leftDiff: 1
+            icons: ["spooky", "monster", "no assist"]
+            storyBonus: 1
+            loot: 2
+            damage: 3
+            number: 4
+            failEffect: "discard after damage"
+        back:
+            name: "Poisoned Feast"
+            difficulty: 12
+            icons: ["magic", "trap", "double assist"]
+            number: 4
+            storyBonus: 1
+            loot: 2
+            damage: 2
+            failEffect: "discard after damage"
+      - front:
+            name: "Eerie Statues"
+            difficulty: 10
+            icons: ["magic", "spooky"]
+            number: 5
+            storyBonus: 1
+            damage: 2
+            failEffect: "discard after damage"
+        back:
+            name: "Haunted Crypts"
+            difficulty: 9
+            icons: ["spooky", "trap"]
+            number: 5
+            damage: 3
+            loot: 2
+            failEffect: "discard after damage"
+      - front:
+            name: "Torture Chamber"
+            difficulty: 9
+            leftDiff: 2
+            icons: ["magic", "trap"]
+            number: 6
+            storyBonus: 1
+            damage: 3
+            failEffect: "discard after damage"
+        back:
+            name: "Ancient Library"
+            difficulty: 11
+            icons: ["magic", "double assist"]
+            number: 6
+            storyBonus: 1
+            loot: 2
+            failEffect: "discard after damage"
+      - front:
+            name: "Hall of Knives"
+            difficulty: 9
+            icons: ["monster", "trap"]
+            number: 7
+            loot: 3
+            damage: 4
+            failEffect: "succeed after damage"
+        back:
+            name: "False Reliquary"
+            difficulty: 11
+            icons: ["spooky", "trap"]
+            number: 7
+            storyBonus: 1
+            loot: 3
+            damage: 2
+            failEffect: "discard after damage"
+      - front:
+            name: "Literal Dungeon"
+            difficulty: 12
+            icons: ["monster", "trap", "double assist"]
+            number: 8
+            loot: 2
+        back:
+            name: "Vault of Shadows"
+            difficulty: 11
+            leftDiff: 1
+            icons: ["spooky", "magic", "double assist"]
+            number: 8
+            loot: 2
+            damage: 2
+            effect: "roll twice pick worst"
+            failEffect: "discard after damage"
+      - front:
+            name: "Vile Altar"
+            difficulty: 10
+            icons: ["spooky", "magic"]
+            number: 9
+            loot: 2
+            damage: 2
+            effect: "spend action token to engage"
+            failEffect: "discard after damage"
+        back:
+            name: "Arena of Blood"
+            difficulty: 12
+            icons: ["monster", "double assist"]
+            number: 9
+            storyBonus: 1
+            loot: 2
+            damage: 3
+            failEffect: "discard after damage"
+      - front:
+            name: "Foul Presence"
+            difficulty: 12
+            leftDiff: 1
+            icons: ["spooky", "magic"]
+            loot: 3
+            damage: 2
+            effect: "spend action token to engage"
+            finale: True
+        back:
+            name: "The Temple"
+            difficulty: 0
+            leftDiff: -1
+            finale: True
+- deck: "carnival"
+  decktype: "location"
+  cards:
+      - front:
+            name: "Practical Joke"
+            difficulty: 7
+            icons: ["spooky", "trap"]
+            number: 1
+            storyBonus: 1
+            damage: 2
+        back:
+            name: "Ring Toss Game"
+            difficulty: 3
+            icons: ["chance", "trap"]
+            number: 1
+            loot: 3
+      - front:
+            name: "Costume Contest"
+            difficulty: 5
+            icons: ["chance", "double assist"]
+            number: 2
+            storyBonus: 1
+            loot: 3
+        back:
+            name: "Bureau of Balloons"
+            difficulty: 6
+            storyBonus: 1
+            number: 2
+      - front:
+            name: "Fried Food"
+            difficulty: 8
+            icons: ["spooky", "monster"]
+            number: 3
+            storyBonus: 1
+            damage: 2
+        back:
+            name: "Giant Panda"
+            difficulty: 4
+            icons: ["chance", "trap"]
+            number: 3
+            storyBonus: 1
+            loot: 3
+      - front:
+            name: "Creepy Clowns"
+            difficulty: 5
+            icons: ["chance", "monster", "trap"]
+            number: 4
+            storyBonus: 1
+            damage: 2
+        back:
+            name: "Overpriced Beer"
+            difficulty: 9
+            icons: ["monster", "double assist"]
+            number: 4
+            damage: 2
+      - front:
+            name: "Gerblin Pickpockets"
+            difficulty: 4
+            icons: ["chance", "trap"]
+            number: 5
+            loot: 3
+            failEffect: "discard all loot"
+        back:
+            name: "Hall of Mirrors"
+            difficulty: 9
+            icons: ["spooky", "trap"]
+            number: 5
+            loot: 2
+            effect: "roll twice pick worst"
+      - front:
+            name: "Test of Strength"
+            difficulty: 3
+            icons: ["chance", "monster", "no assist"]
+            number: 6
+            loot: 3
+            failEffect: "discard after damage"
+        back:
+            name: "Haunted Food Tent"
+            difficulty: 9
+            icons: ["spooky", "trap"]
+            number: 6
+            storyBonus: 1
+            loot: 2
+            damage: 2
+      - front:
+            name: "Tunnel of Love"
+            difficulty: 9
+            icons: ["spooky", "double assist"]
+            number: 7
+            storyBonus: 1
+            loot: 2
+            damage: 2
+        back:
+            name: "Fantasy Gachapon"
+            difficulty: 1
+            icons: ["chance", "magic"]
+            number: 7
+            loot: 0
+            damage: 0
+      - front:
+            name: "The Scariest Ride"
+            difficulty: 11
+            icons: ["monster", "trap"]
+            number: 8
+            damage: 3
+            failEffect: "succeed after damage"
+        back:
+            name: "Phantom of the Carnival"
+            difficulty: 10
+            icons: ["spooky", "magic"]
+            number: 8
+            damage: 2
+            loot: 2
+      - front:
+            name: "Something Unexpected"
+            difficulty: 5
+            icons: ["chance"]
+            number: 9
+            loot: 3
+            storyBonus: 1
+        back:
+            name: "Consequences"
+            difficulty: 11
+            icons: ["spooky", "trap"]
+            number: 9
+            storyBonus: 1
+      - front:
+            name: "Crooked Can Game"
+            difficulty: 5
+            icons: ["chance", "trap", "no assist"]
+            loot: 3
+            damage: 2
+            storyBonus: 1
+            finale: True
+        back:
+            name: "The Carnival"
+            effect: "recover 3 on reveal"
+            difficulty: 0
+            finale: True
+- deck: "sash"
+  decktype: "relic"
+  cards:
+      - front:
+            name: "Terrifying Topiary"
+            difficulty: 8
+            icons: ["spooky", "monster"]
+            storyBonus: 1
+        back:
+            name: "Swarm of Bees"
+            difficulty: 9
+            leftDiff: 1
+            rightDiff: 1
+            icons: ["monster", "double assist"]
+            damage: 2
+      - front:
+            name: "Poisonous Poppies"
+            difficulty: 5
+            leftDiff: 1
+            rightDiff: 1
+            icons: ["chance", "magic", "trap"]
+            loot: 2
+            storyBonus: 1
+        back:
+            name: "Bad Apples"
+            difficulty: 8
+            leftDiff: 1
+            icons: ["spooky", "trap"]
+            loot: 2
+            damage: 2
+      - front:
+            name: "Wall of Vines"
+            difficulty: 7
+            rightDiff: 1
+            icons: ["no dice", "monster", "trap", "double assist"]
+            storyBonus: 1
+        back:
+            name: "Jumping Bean"
+            difficulty: 6
+            icons: ["chance", "magic", "trap"]
+            storyBonus: 1
+            loot: 3
+      - front:
+            name: "Mighty Wind"
+            difficulty: 9
+            rightDiff: 2
+            icons: ["magic", "double assist"]
+            failEffect: "succeed after damage"
+            damage: 3
+        back:
+            name: "Landslide"
+            difficulty: 9
+            leftDiff: 2
+            icons: ["magic", "double assist"]
+            loot: 2
+            failEffect: "damage up 1"
+      - front:
+            name: "Possessed Weedwhacker"
+            difficulty: 8
+            icons: ["spooky", "monster"]
+        back:
+            name: "The Root of All Evil"
+            difficulty: 9
+            icons: ["spooky", "magic"]
+            damage: 2
+            storyBonus: 1
+      - front:
+            name: "The Birds"
+            difficulty: 10
+            rightDiff: 1
+            icons: ["spooky", "monster"]
+            storyBonus: 1
+            loot: 2
+        back:
+            name: "Carnivorous Plants"
+            difficulty: 10
+            leftDiff: 1
+            icons: ["spooky", "trap"]
+            storyBonus: 1
+            loot: 2
+      - front:
+            name: "Onion Nymph"
+            difficulty: 7
+            icons: ["spooky", "magic", "no assist"]
+            loot: 2
+            damage: 2
+        back:
+            name: "Adorable Bunny"
+            difficulty: 4
+            icons: ["chance", "spooky", "monster"]
+            storyBonus: 1
+            damage: 2
+      - front:
+            name: "Pile of Leaves"
+            difficulty: 5
+            icons: ["trap"]
+            succeedEffect: "flip self"
+            loot: 0
+        back:
+            name: "Shambling Compost"
+            difficulty: 8
+            icons: ["spooky", "monster"]
+            damage: 2
+            loot: 2
+      - front:
+            name: "Trent the Treant"
+            difficulty: 10
+            icons: ["monster", "double assist"]
+            loot: 2
+            damage: 3
+        back:
+            name: "Silverpoint Venom"
+            difficulty: 7
+            icons: ["no dice", "spooky", "trap", "double assist"]
+            loot: 2
+            damage: 10
+      - front:
+            name: "Lure of the Sash"
+            difficulty: 8
+            icons: ["spooky", "magic", "no assist"]
+            loot: 3
+            damage: 3
+            effect: "can discard surprise to succeed"
+            finale: True
+        back:
+            name: "The Sash"
+            difficulty: 0
+            leftDiff: -1
+            rightDiff: -1
+            finale: True
