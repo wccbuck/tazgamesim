@@ -1,7 +1,7 @@
 villain: lich
 relic: staff
 location: cave
-skipPauses: True
+skipPauses: False
 display: False
 runs: 50000
 players:

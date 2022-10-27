@@ -319,16 +319,20 @@ class PlayerCharacter:
 
     def getHoldTokenPriority(self, localState=state, aboutToGetTokensBack=False):
         # Priority for a given player to hold their token
+        # This is mostly the result of guessing things to try and keeping what
+        # seemed to improve win rate.
         if self.name == "bard":
             return -0.0001  # just so bard shows up first in priority
 
         playerNumber = 0
+        ntrf = localState.priorities["next turn relevance factor"]
+
         for index, player in enumerate(localState.players):
             if player == self:
                 playerNumber = index
                 break
 
-        holdPriority = 0
+        tokenOptions = []
 
         turnsRemaining = len(localState.players) - 1 - localState.currentPlayer
         assistOpportunities = getNumberOfAssistOpportunities(turnsRemaining, localState)
@@ -336,33 +340,82 @@ class PlayerCharacter:
             [True for player in localState.players if player.hasToken]
         )
         if aboutToGetTokensBack:
+            # if, as part of this priority calculation, we are about to use a
+            # card that will restore all players' tokens, like Ring of Recall
             tokensAvailable = len(localState.players)
-        holdPriority += (
+
+        tokenOptions.append(
             0.3
+            * ntrf
             * (self.getAssistBefore() + self.getAssistAfter())
             * max(assistOpportunities - tokensAvailable, 0)
         )
+
+        activeCards = getActiveCards(localState)
+        for challenge in activeCards:
+            if (
+                "trap" in challenge.icons
+                and "+2 trap die roll when spend token"
+                in [fkcCard.ongoingEffect for fkcCard in self.fkcCards]
+                and getCardClearPriority(challenge.decktype, localState) > 0
+            ):
+                tokenOptions.append(1)
+        for fkcCard in self.fkcCards:
+            if (
+                "spend token after fail reduce damage by 2 any player"
+                == fkcCard.ongoingEffect
+            ):
+                tokenOptions.append(
+                    ntrf
+                    * 0.5
+                    * getHealthChangePriority(
+                        max(localState.health - 3, 0), localState.health - 2
+                    )
+                )
         myTurnIsComingUp = localState.currentPlayer < playerNumber
         if myTurnIsComingUp:
-            n = 0
-            if self.name == "wizard":
-                n += 1
-            if self.name == "warrior" and getDamagePriority(1, localState) < 3:
-                n += 1
-            for fkcCard in self.fkcCards:
+            # wip
+            cardForWizard = None
+            for challenge in activeCards:
                 if (
-                    "spend token" in fkcCard.ongoingEffect
-                    or fkcCard.ongoingEffect == "can use other players abilities"
+                    "magic" in challenge.icons
+                    and getCardClearPriority(challenge.decktype, localState) > 0
                 ):
-                    n += 1
+                    cardForWizard = challenge
+                    break
+            for challenge in activeCards:
+                if (
+                    "monster" in challenge.icons
+                    and self.name == "wizard"
+                    and getCardClearPriority(challenge.decktype, localState) > 0
+                    and (cardForWizard is None or cardForWizard == challenge)
+                ):
+                    # shrug
+                    tokenOptions.append(1.5)
+                if (
+                    challenge.effect == "spend action token to engage"
+                    and getDelta(challenge, self) < 4
+                    and getCardClearPriority(challenge.decktype, localState) > 0
+                ):
+                    tokenOptions.append(2)
+            if self.name == "warrior" and getDamagePriority(1, localState) < 2:
+                tokenOptions.append(0.5)
+            for fkcCard in self.fkcCards:
+                if "spend token after fail reduce damage by 1" == fkcCard.ongoingEffect:
+                    tokenOptions.append(
+                        ntrf
+                        * 0.5
+                        * getHealthChangePriority(
+                            max(localState.health - 2, 0), localState.health - 1
+                        )
+                    )
 
-            # holdPriority bonus = 1 when n = 1, approaches 2 as n increases
-            # this is to indicate the value of saving your token until your turn
-            holdPriority += (2 ** (1 - n)) * ((2**n) - 1)
-            if self.name == "priest":
-                holdPriority += getRecoverPriority(1, localState)
+            if self.name == "priest" or "spend token recover 1" in [
+                fkcCard.ongoingEffect for fkcCard in self.fkcCards
+            ]:
+                tokenOptions.append(getRecoverPriority(1, localState))
 
-        return holdPriority
+        return max(tokenOptions)
 
     def getHoldPriority(self, currentDeck=None, localState=state):
         return self.getHoldTokenPriority(localState)
@@ -514,6 +567,8 @@ class SurpriseCard:
         self.failAnyEffect = ""
         self.finale = False
         self.icons = []
+        self.leftDiff = 0  # rare corner case where we need something here
+        self.rightDiff = 0
 
     def reveal(self):
         currentDeck = getDeckFromType(self.currentDeck)
@@ -552,15 +607,9 @@ class SurpriseCard:
                 flipPriority += 1
 
         regainTokenPriority = 0
-        turnsRemaining = len(state.players) - 1 - state.currentPlayer
-        assistOpportunities = getNumberOfAssistOpportunities(turnsRemaining)
-        assistTokensAvailable = len(
-            [True for player in state.players if player.hasToken]
-        )
-        assistTokensExpended = len(state.players) - assistTokensAvailable
-        regainTokenPriority = 0.5 * min(
-            max(assistOpportunities - assistTokensAvailable, 0), assistTokensExpended
-        )
+        for player in state.players:
+            if not player.hasToken:
+                regainTokenPriority += player.getHoldTokenPriority(state, True)
         discardPriority = {
             "recover 3": recoverPriority,
             "draw fkc card": 3,
@@ -591,7 +640,7 @@ class SurpriseCard:
         if self.discardEffect == "+2 any die roll suffer 1 damage":
             holdPriority -= getDamagePriority(1, localState)
         if skipDiscardEffect:
-            discardEffectValue += {
+            discardEffectValue = {
                 "recover 3": getRecoverPriority(3, localState),
                 "draw fkc card": 3,
                 "draw fkc card skip challenge": 3,
@@ -600,8 +649,7 @@ class SurpriseCard:
             holdPriority += discardEffectValue
         if localState.relic == "sash" and not localState.relicDeck[0].finale:
             # we can discard surprise to win sash finale
-            # todo: test win rates with/without this
-            holdPriority += 3
+            holdPriority += 2
         return holdPriority
 
     def useDiscardAbility(self):
@@ -686,17 +734,12 @@ class FKCCard:
         recover2Priority = getRecoverPriority(2)
 
         regainTokenPriority = 0
-        turnsRemaining = len(state.players) - 1 - state.currentPlayer
-        assistOpportunities = getNumberOfAssistOpportunities(turnsRemaining)
-        assistTokensAvailable = len(
-            [True for player in state.players if player.hasToken]
-        )
-        assistTokensExpended = len(state.players) - assistTokensAvailable
-        regainTokenPriority = 0.5 * min(
-            max(assistOpportunities - assistTokensAvailable, 0), assistTokensExpended
-        )
-        ogba = state.priorities["ongoing bonus any"]
-        ogb = state.priorities["ongoing bonus"]
+        for player in state.players:
+            if not player.hasToken:
+                regainTokenPriority += player.getHoldTokenPriority(state, True)
+
+        ogba = state.priorities["ongoing bonus any"] * 5 / len(state.players)
+        ogb = state.priorities["ongoing bonus"] * 5 / len(state.players)
         discardPriority = {
             "recover 3": recover3Priority,
             "recover 2": recover2Priority,
@@ -710,8 +753,8 @@ class FKCCard:
     def getHoldPriority(
         self, currentDeck=None, localState=state, skipDiscardEffect=False
     ):
-        ogba = state.priorities["ongoing bonus any"]
-        ogb = state.priorities["ongoing bonus"]
+        ogba = state.priorities["ongoing bonus any"] * 5 / len(state.players)
+        ogb = state.priorities["ongoing bonus"] * 5 / len(state.players)
         noDamageAfterFail = getHealthChangePriority(
             max(localState.health - 3, 0), localState.health
         )
@@ -817,6 +860,11 @@ class FKCCard:
             return 2
         if self.discardEffect == "+1 any die roll any player":
             return 1
+        if (
+            self.ongoingEffect == "+2 trap die roll when spend token"
+            and "trap" in icons
+        ):
+            return 2
         return 0
 
     def getAssistBefore(self, icons=None):
@@ -953,7 +1001,6 @@ class Option:
         )
 
     def handleSuccess(self, currentDeck):
-        # Todo: add the rest
         if state.display:
             print("\033[92mSuccess!\033[0m\n")
         if self.card.finale:
@@ -1056,7 +1103,6 @@ class Option:
             and not self.card.finale
         ):
             currentDeck.pop(0)
-
         if self.card.succeedEffect == "flip next recover 1":
             futureState.health = min(futureState.health + 1, futureState.maxHealth)
         if self.card.succeedEffect == "recover 2":
@@ -1232,6 +1278,10 @@ class Option:
                         "magic die roll any player" in fkcCard.discardEffect
                         and "magic" in self.card.icons
                     )
+                    or (
+                        "+2 trap die roll when spend token" == fkcCard.ongoingEffect
+                        and "trap" in self.card.icons
+                    )
                 ):
                     potentialHelpers.append(fkcCard)
 
@@ -1264,12 +1314,25 @@ class Option:
         setsOfUsefulHelpers = sorted(
             setsOfUsefulHelpers,
             key=lambda set: sum(
-                [x.getHoldPriority(currentDeck=currentDeck) for x in set]
+                [
+                    x.pc.getHoldPriority(currentDeck=currentDeck)
+                    if isinstance(x, FKCCard) and "when spend token" in x.ongoingEffect
+                    else x.getHoldPriority(currentDeck=currentDeck)
+                    for x in set
+                ]
             ),
         )
         if (
             setsOfUsefulHelpers
-            and sum([helper.getHoldPriority() for helper in setsOfUsefulHelpers[0]])
+            and sum(
+                [
+                    helper.pc.getHoldPriority(currentDeck=currentDeck)
+                    if isinstance(helper, FKCCard)
+                    and "when spend token" in helper.ongoingEffect
+                    else helper.getHoldPriority(currentDeck=currentDeck)
+                    for helper in setsOfUsefulHelpers[0]
+                ]
+            )
             < self.success - self.failure
         ):
             prob = getProbFromDelta(
@@ -1283,6 +1346,11 @@ class Option:
                 for helper in setsOfUsefulHelpers[0]:
                     if isinstance(helper, PlayerCharacter):
                         helper.hasToken = False
+                    elif (
+                        isinstance(helper, FKCCard)
+                        and "when spend token" in helper.ongoingEffect
+                    ):
+                        helper.pc.hasToken = False
                     else:
                         if state.display:
                             print(f"Discarding {helper.name}...")
@@ -1537,7 +1605,9 @@ class Option:
                         discardPriority = getHealthChangePriority(
                             pendingHealth, state.health
                         )
-                        noDiscardPriority = state.priorities["ongoing bonus"]
+                        noDiscardPriority = (
+                            state.priorities["ongoing bonus"] * 5 / len(state.players)
+                        )
                         if discardPriority > noDiscardPriority:
                             phantomFist.useDiscardAbility()
                             phantomFist = None
@@ -1603,7 +1673,7 @@ class Option:
                         player.hasToken = False
                 if self.card.failEffect == "succeed after damage":
                     currentDeck.remove(self.card)
-                    self.pc.lootCards.append(self.card)
+                    self.pc.addLootCard(self.card)
                     self.card.diffMod = 0
                     self.card.damageMod = 0
                     currentDeck[0].reveal()
@@ -1876,6 +1946,9 @@ def calculateOutcomes(
     if not spotsOpen:
         lootValue = lootValue / 3.0
 
+    # loot/fkc cards slightly more valuable if you have fewer players
+    lootValue = lootValue * 5 / len(state.players)
+
     success = lootValue + getCardClearPriority(challenge.currentDeck, localState)
 
     failure = getDamagePriority(challenge.getDamage(), localState)
@@ -1917,11 +1990,13 @@ def calculateOutcomes(
     if "no damage after fail any player" in [
         fkcCard.ongoingEffect for fkcCard in pc.fkcCards
     ]:
-        failure = min(state.priorities["ongoing bonus"], failure)
+        failure = min(
+            state.priorities["ongoing bonus"] * 5 / len(state.players), failure
+        )
     if "no damage after fail but discard this" in [
         fkcCard.ongoingEffect for fkcCard in pc.fkcCards
     ]:
-        failure = state.priorities["ongoing bonus any"]
+        failure = state.priorities["ongoing bonus any"] * 5 / len(state.players)
     # todo: put all of these in priorities.yaml
 
     succeedEffectFactor = 0
@@ -2023,8 +2098,8 @@ def calculateOutcomes(
         and challenge.deck not in ["train", "race"]
     ):
         # if we are about to reveal a surprise card and we don't currently
-        # have one, that's worth about 1 fkc card
-        success += localState.priorities["obtain 3 loot"]
+        # have one, that adds to the value of this choice
+        success += getSurpriseOngoingPriority()
 
     return success, failure
 
@@ -2080,7 +2155,7 @@ def getPriority(challenge, pc, allOutcomes, helpers=None, lookAhead=True):
     delta = getDelta(challenge, pc)
     if challenge.effect == "can discard loot to flip" and len(pc.lootCards) == 2:
         delta = getDelta(challenge.reverse, pc)
-    holdPriorityHelpers = 0
+    holdPriorityHelpers = 0  # gets subtracted from final priority
     assists = 0
     pcsSpendingTokens = []
     sacrificedHealth = 0
@@ -2092,21 +2167,11 @@ def getPriority(challenge, pc, allOutcomes, helpers=None, lookAhead=True):
             delta -= helper.getAssistAfter(challenge.icons)
             if helper.discardEffect == "regain action tokens":
                 tokensRestored = True
-                regainTokenPriority = 0
-                turnsRemaining = len(localState.players) - 1 - localState.currentPlayer
-                assistOpportunities = getNumberOfAssistOpportunities(
-                    turnsRemaining, localState
-                )
-                assistTokensAvailable = len(
-                    [True for player in localState.players if player.hasToken]
-                )
-                assistTokensExpended = len(localState.players) - assistTokensAvailable
-                regainTokenPriority = 0.5 * min(
-                    max(assistOpportunities - assistTokensAvailable, 0),
-                    assistTokensExpended,
-                )
-                holdPriorityHelpers -= regainTokenPriority
-
+                for player in localState.players:
+                    if not player.hasToken:
+                        holdPriorityHelpers -= player.getHoldTokenPriority(
+                            localState, True
+                        )
         if isinstance(helper, PlayerCharacter):
             assists += 1
             pcsSpendingTokens.append(helper)
@@ -2411,7 +2476,7 @@ def getNumberOfAssistOpportunities(turnsRemaining=3, localState=state):
         for card in activeCards:
             if "double assist" in card.icons:
                 foundCard = True
-                num += 2 + (1 if card.effect == "spend action token to engage" else 0)
+                num += 2
                 activeCards.remove(card)
                 break
         if foundCard:
@@ -2424,7 +2489,7 @@ def getNumberOfAssistOpportunities(turnsRemaining=3, localState=state):
                 and not deckDefeated(card.decktype)
                 and card.deck not in ["train", "race"]
             ):
-                num += 1 + (1 if card.effect == "spend action token to engage" else 0)
+                num += 1
                 activeCards.remove(card)
                 break
         turnsRemaining -= 1
@@ -2439,8 +2504,7 @@ def getSurpriseOngoingPriority(any=False):
         else state.priorities["ongoing bonus"]
     )
 
-    numPlayers = len(state.players)
-    return fkcCardOngoing * (1 + numPlayers * 0.2)
+    return fkcCardOngoing * 4
 
 
 def assembleOptions(localState=state, currentDeckType=""):
@@ -2633,8 +2697,10 @@ def assembleOptions(localState=state, currentDeckType=""):
     # if looking ahead, skip the deck the current player is considering.
     # unless this player is bard and 'currentDeckType' is 'relic',
     # because that will likely be the bard's best option.
+    removedCard = None
     for card in activeCards:
         if card.currentDeck == currentDeckType:
+            removedCard = card
             activeCards.remove(card)
             break
 
@@ -2648,9 +2714,12 @@ def assembleOptions(localState=state, currentDeckType=""):
             break
 
     pc = localState.players[localState.currentPlayer]
+
+    # The "generic" cards below are only considered as part of "lookAhead"
+    # (i.e. localState = futureState). We never "takeAction" on these.
     if (
         currentDeckType == "villain"
-        and not deckDefeated("villain")
+        and not localState.villainDeck[0].finale
         and (oneDeckClear(localState) or state.location in ["train", "race"])
     ):
         activeCards.append(
@@ -2665,7 +2734,7 @@ def assembleOptions(localState=state, currentDeckType=""):
         )
     if (
         currentDeckType == "relic"
-        and not deckDefeated("relic")
+        and not localState.relicDeck[0].finale
         and (
             pc.name == "bard"
             or oneDeckClear(localState)
@@ -2686,7 +2755,7 @@ def assembleOptions(localState=state, currentDeckType=""):
     if (
         currentDeckType == "location"
         and oneDeckClear(localState)
-        and not deckDefeated("location")
+        and not localState.locationDeck[0].finale
         and state.location not in ["train", "race"]
     ):
         activeCards.append(

@@ -322,6 +322,7 @@ if state.display:
             )
             if not state.skipPauses:
                 input()
+
             options[0].takeAction()
 
             displayHealth()

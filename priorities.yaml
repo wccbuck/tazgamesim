@@ -1,6 +1,5 @@
 obtain 1 loot: 1
 obtain 2 loot: 2
-obtain 2 loot currently have loot 2 card: 1
 obtain 3 loot: 3
 # coefficients for priority of clearing a challenge card
 clear 1 card a: 100
