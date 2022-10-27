@@ -123,9 +123,6 @@ def initGame(url):
     sc3.currentDeck = "location"
     state.locationDeck.insert(4, sc3)
 
-    for card in [state.villainDeck[0], state.relicDeck[0], state.locationDeck[0]]:
-        card.reveal()
-
     state.players = [PlayerCharacter(name) for name in gameSetupDict["players"]]
     random.shuffle(state.players)
     state.currentPlayer = 0
@@ -137,6 +134,9 @@ def initGame(url):
         5: 10,
     }.get(numPlayers, 10)
     state.health = state.maxHealth
+
+    for card in [state.villainDeck[0], state.relicDeck[0], state.locationDeck[0]]:
+        card.reveal()
 
     state.trainRaceTokenHouseRule = (
         "trainRaceTokenHouseRule" in gameSetupDict

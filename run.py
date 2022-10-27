@@ -1,6 +1,7 @@
 import random
 import copy
 import statistics
+import math
 import state, futureState
 from time import sleep
 from init import *
@@ -350,22 +351,20 @@ if state.display:
 else:
     results = []
 
-    # forbiddenLocationCards = []
     for i in range(state.runs):
         try:
             result = {}
             result["turnCount"] = 0
+            result["nemesisShowedUpFirstFiveCards"] = False
+            if state.relic == "hoard":
+                for index in range(7):  # cards 0-6, since card 4 is a surprise card
+                    if state.relicDeck[index].name == "Your Nemesis":
+                        result["nemesisShowedUpFirstFiveCards"] = True
+                        break
             while True:
                 result["turnCount"] += 1
                 options = assembleOptions()
 
-                # if isinstance(options[0].card, ChallengeCard) and options[0].card.deck in [
-                #     "train",
-                #     "race",
-                # ]:
-                #     forbiddenLocationCards.append(options[0].card.number)
-                # else:
-                #     forbiddenLocationCards.append(-1)
                 options[0].takeAction()
 
                 if state.won is not None:
@@ -378,16 +377,17 @@ else:
                         if state.location in ["train", "race"]:
                             # did we reach the end of the line
                             result["trainRaceEOL"] = state.locationDeck[0].finale
+
                     result["health"] = state.health
                     results.append(result)
                     break
             if (i + 1) % 10 == 0:
-                winrate = (
+                winratePct = (
                     100.0
                     * len([result for result in results if result["won"]])
                     / len(results)
                 )
-                print(f"{i + 1} ({winrate:.2f}% winrate)")
+                print(f"{i + 1} ({winratePct:.2f}% winrate)")
 
             reinitGame("game_setup.yaml")
         except KeyboardInterrupt:
@@ -396,9 +396,16 @@ else:
 
     wins = len([result for result in results if result["won"]])
     losses = len([result for result in results if not result["won"]])
-    winrate = 100.0 * wins / len(results)
+    winrate = wins / len(results)
+    winratePct = 100.0 * wins / len(results)
+    wrError = 100.0 * (1.96 * math.sqrt((winrate * (1 - winrate)) / state.runs))
+    wrLowerBound = winratePct - wrError
+    wrUpperBound = winratePct + wrError
     turnCount = statistics.mean([result["turnCount"] for result in results])
     tcStdev = statistics.stdev([result["turnCount"] for result in results])
+    winHealth = statistics.mean(
+        [result["health"] for result in results if result["won"]]
+    )
     villainWins = len(
         [result for result in results if result["won"] and result["clearedVillain"]]
     )
@@ -416,7 +423,7 @@ else:
     locationWinsPct = 100.0 * locationWins / wins
     completeWinsPct = 100.0 * completeWins / wins
     print("#####################")
-    print(f"Win rate: {winrate:.2f}%")
+    print(f"Win rate: {winratePct:.2f}%")
     print(f"Wins: {wins}, Losses: {losses} (Total: {wins+losses})")
     print(f"Average turn count: {turnCount:.2f} ± {tcStdev:.2f}")
     print(f"Percentage of wins where villain was defeated: {villainWinsPct:.2f}%")
@@ -424,6 +431,10 @@ else:
     print(
         f"Percentage of wins where both villain and location were cleared: {completeWinsPct:.2f}%"
     )
+    eolLossesPct = 0
+    avgEOLHealth = 0
+    wrNemesisShowedUp = 0
+    wrNoNemesisShowedUp = 0
     if state.location in ["train", "race"]:
         eolLosses = len(
             [
@@ -444,10 +455,39 @@ else:
             f"Percentage of losses where we reached the end of the location deck: {eolLossesPct:.2f}%"
         )
         print(f"Average remaining health in those games: {avgEOLHealth:.2f}")
-    # print("Train/Race card numbers chosen for attempts:")
-    # for j in range(-1, 10):
-    #     jCount = len([cardnum for cardnum in forbiddenLocationCards if cardnum == j])
-    #     print(f"\t{j}:\t{jCount}")
+    if state.relic == "hoard":
+        nemesisWins = len(
+            [
+                result
+                for result in results
+                if result["nemesisShowedUpFirstFiveCards"] and result["won"]
+            ]
+        )
+        nemesisCount = len(
+            [result for result in results if result["nemesisShowedUpFirstFiveCards"]]
+        )
+        noNemesisWins = len(
+            [
+                result
+                for result in results
+                if not result["nemesisShowedUpFirstFiveCards"] and result["won"]
+            ]
+        )
+        noNemesisCount = len(
+            [
+                result
+                for result in results
+                if not result["nemesisShowedUpFirstFiveCards"]
+            ]
+        )
+        if nemesisCount > 0 and noNemesisCount > 0:
+            wrNemesisShowedUp = 100.0 * nemesisWins / nemesisCount
+            wrNoNemesisShowedUp = 100.0 * noNemesisWins / noNemesisCount
+            print(
+                f"Win Rate where 'Your Nemesis' showed up within the first five challenge cards of the relic deck: {wrNemesisShowedUp}%"
+            )
+            print(f"Win Rate otherwise: {wrNoNemesisShowedUp}%")
+
     gameKey = f"{state.villain}-{state.relic}-{state.location}-"
     playerList = [player.name for player in state.players]
     playerList.sort()
@@ -456,3 +496,9 @@ else:
     gameKey = gameKey.replace(" ", "")
     print("\nKey for this game:")
     print(gameKey)
+    print(
+        "winratePct\twrLowerBound\twrUpperBound\tturnCount\ttcStdev\twinHealth\tvillainWinsPct\tlocationWinsPct\tcompleteWinsPct\teolLossesPct\tavgEOLHealth\twrNemesisShowedUp\twrNoNemesisShowedUp"
+    )
+    print(
+        f"{winratePct}\t{wrLowerBound}\t{wrUpperBound}\t{turnCount}\t{tcStdev}\t{winHealth}\t{villainWinsPct}\t{locationWinsPct}\t{completeWinsPct}\t{eolLossesPct}\t{avgEOLHealth}\t{wrNemesisShowedUp}\t{wrNoNemesisShowedUp}"
+    )
