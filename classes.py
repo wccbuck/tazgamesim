@@ -2430,12 +2430,6 @@ def getPriority(challenge, pc, allOutcomes, helpers=None, lookAhead=True):
                 success,
                 failure,
             )
-    ### testing
-    # leftCardName = leftCard.name if leftCard is not None else "None"
-    # rightCardName = rightCard.name if rightCard is not None else "None"
-    # print(f">>>{challenge.name}: {success}, {failure}, {diffFactor}")
-    # print(f">>>>{leftCardName}, {rightCardName}")
-    ###
 
     return (
         prob * success
