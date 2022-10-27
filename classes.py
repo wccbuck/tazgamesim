@@ -369,7 +369,7 @@ class PlayerCharacter:
                     ntrf
                     * 0.5
                     * getHealthChangePriority(
-                        max(localState.health - 3, 0), localState.health - 2
+                        max(localState.health - 2, 0), localState.health
                     )
                 )
         myTurnIsComingUp = localState.currentPlayer < playerNumber
