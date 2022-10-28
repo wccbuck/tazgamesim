@@ -1,6 +1,6 @@
 villain: lich
-relic: staff
-location: race
+relic: ring
+location: temple
 players:
     - bard
     - priest
@@ -9,7 +9,7 @@ players:
     - wizard
 skipPauses: False
 display: False
-runs: 50000
+runs: 30000
 # the below house rule lets players spend their token in place of discarding
 # a location challenge card when playing with the Train or Race locations
 trainRaceTokenHouseRule: False

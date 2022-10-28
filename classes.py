@@ -1187,7 +1187,9 @@ class Option:
             localState.surprise.useDiscardAbility()
 
         # restore tokens
-        getPlayerCharacter("bard", localState).hasToken = True
+        bardPlayer = getPlayerCharacter("bard", localState)
+        if bardPlayer is not None:
+            bardPlayer.hasToken = True
 
         if (
             localState == state
