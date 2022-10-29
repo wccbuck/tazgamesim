@@ -1969,8 +1969,10 @@ def calculateOutcomes(
     if slippies is not None and slippies.pc.hasToken:
         failure = min(
             failure,
-            getDamagePriority(max(dmgAmt - 1, 0), localState)
-            + slippies.pc.getHoldTokenPriority(),
+            (
+                getDamagePriority(max(dmgAmt - 1, 0), localState)
+                - slippies.pc.getHoldTokenPriority()
+            ),
         )
     shield = None
     for player in localState.players:
@@ -1985,20 +1987,22 @@ def calculateOutcomes(
     if shield is not None and shield.pc.hasToken:
         failure = min(
             failure,
-            getDamagePriority(max(dmgAmt - 2, 0), localState)
-            + shield.pc.getHoldTokenPriority(),
+            (
+                getDamagePriority(max(dmgAmt - 2, 0), localState)
+                - shield.pc.getHoldTokenPriority()
+            ),
         )
 
     if "no damage after fail any player" in [
         fkcCard.ongoingEffect for fkcCard in pc.fkcCards
     ]:
         failure = min(
-            state.priorities["ongoing bonus"] * 5 / len(state.players), failure
+            -1 * state.priorities["ongoing bonus"] * 5 / len(state.players), failure
         )
     if "no damage after fail but discard this" in [
         fkcCard.ongoingEffect for fkcCard in pc.fkcCards
     ]:
-        failure = state.priorities["ongoing bonus any"] * 5 / len(state.players)
+        failure = -1 * state.priorities["ongoing bonus any"] * 5 / len(state.players)
     # todo: put all of these in priorities.yaml
 
     succeedEffectFactor = 0
@@ -3272,7 +3276,7 @@ def assembleOptions(localState=state, currentDeckType=""):
                     )
 
     options = sorted(options, reverse=True)
-    if not options:
+    if not options and localState == state:
         if state.display:
             print("No options possible! Skipping turn.")
         options.append(Option(None, pc))
