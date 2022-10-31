@@ -63,7 +63,10 @@ class PlayerCharacter:
                 totalStrength += state.surprise.ongoingBonus
         return totalStrength
 
-    def getAssist(self, stat, challengeCardIcons=None):
+    def getAssist(self, stat, challenge=None):
+        icons = []
+        if challenge is not None:
+            icons = challenge.icons
         assist = stat
         if "+1 assist any challenge" in [
             fkcCard.ongoingEffect for fkcCard in self.fkcCards
@@ -72,19 +75,19 @@ class PlayerCharacter:
         if "+1 assist monster challenge" in [
             fkcCard.ongoingEffect for fkcCard in self.fkcCards
         ]:
-            if challengeCardIcons is None:  # unspecified challenge
+            if challenge is None:  # unspecified challenge
                 assist += 0.25
-            elif "monster" in challengeCardIcons:
+            elif "monster" in icons:
                 assist += 1
-        if state.villain == "giant":
+        if challenge is not None and challenge.deck == "giant":
             assist += 1
         return assist
 
-    def getAssistAfter(self, challengeCardIcons=None):
-        return self.getAssist(self.assistAfter, challengeCardIcons)
+    def getAssistAfter(self, challenge=None):
+        return self.getAssist(self.assistAfter, challenge)
 
-    def getAssistBefore(self, challengeCardIcons=None):
-        return self.getAssist(self.assistBefore, challengeCardIcons)
+    def getAssistBefore(self, challenge=None):
+        return self.getAssist(self.assistBefore, challenge)
 
     def addFkcCard(self, newFkcCard):
         # give 'spend token' cards to the bard
@@ -686,9 +689,10 @@ class SurpriseCard:
             state.surprise = None
         state.surpriseDiscard.append(self)
 
-    def getAssistAfter(self, icons=None):
-        if icons == None:
-            icons = []
+    def getAssistAfter(self, challenge=None):
+        icons = []
+        if challenge is not None:
+            icons = challenge.icons
         if self.discardEffect == "+2 trap die roll" and "trap" in icons:
             return 2
         if self.discardEffect == "+2 magic die roll" and "magic" in icons:
@@ -703,7 +707,7 @@ class SurpriseCard:
             return 1
         return 0
 
-    def getAssistBefore(self, icons=None):
+    def getAssistBefore(self, challenge=None):
         return 0
 
 
@@ -837,9 +841,10 @@ class FKCCard:
         self.pc = None
         state.fkcDiscard.append(self)
 
-    def getAssistAfter(self, icons=None):
-        if icons == None:
-            icons = []
+    def getAssistAfter(self, challenge=None):
+        icons = []
+        if challenge is not None:
+            icons = challenge.icons
         if (
             self.discardEffect == "+3 monster die roll any player"
             and "monster" in icons
@@ -867,7 +872,7 @@ class FKCCard:
             return 2
         return 0
 
-    def getAssistBefore(self, icons=None):
+    def getAssistBefore(self, challenge=None):
         if self.discardEffect == "+3 any die roll before":
             return 3
         return 0
@@ -1301,7 +1306,7 @@ class Option:
                     <= arma
                 ):
                     helpSum = sum(
-                        [helper.getAssistAfter(self.card.icons) for helper in newSet]
+                        [helper.getAssistAfter(self.card) for helper in newSet]
                     )
                     if helpSum >= minimumNeeded:
                         setsOfUsefulHelpers.append(newSet.copy())
@@ -1340,7 +1345,7 @@ class Option:
             prob = getProbFromDelta(
                 adjustedDelta
                 - sum(
-                    helper.getAssistAfter(self.card.icons)
+                    helper.getAssistAfter(self.card)
                     for helper in setsOfUsefulHelpers[0]
                 )
             )
@@ -1415,7 +1420,7 @@ class Option:
                 # needs to be handled elsewhere, when assembling options
                 if isinstance(helper, PlayerCharacter):
                     self.assists += 1
-                    helperBonus += helper.getAssistBefore(self.card.icons)
+                    helperBonus += helper.getAssistBefore(self.card)
                     helper.hasToken = False
                 elif isinstance(helper, Ability):
                     if helper.name == "wizard ability" and "monster" in self.card.icons:
@@ -1448,12 +1453,12 @@ class Option:
                     if helper.discardEffect == "any challenge 50%":
                         useCoin = True
 
-                    helperBonus += helper.getAssistBefore(self.card.icons)
+                    helperBonus += helper.getAssistBefore(self.card)
                     # "assistAfter"s should only be used before the "roll" if "no dice"
                     # is in the challenge card's icons. Any fkc/surprise helpers
                     # that have getAssistAfter > 0 will only be added for "no dice" challenges
 
-                    helperBonus += helper.getAssistAfter(self.card.icons)
+                    helperBonus += helper.getAssistAfter(self.card)
                     helper.useDiscardAbility()
 
             # small delta is good
@@ -1752,14 +1757,17 @@ class Ability:
         self.name = name
         self.pc = pc
 
-    def getAssistBefore(self, icons):
+    def getAssistBefore(self, challenge=None):
+        icons = []
+        if challenge is not None:
+            icons = challenge.icons
         if self.name == "wizard ability" and "monster" in icons:
             return 3
         if self.name == "warrior ability":
             return 2
         return 0
 
-    def getAssistAfter(self, icons):
+    def getAssistAfter(self, challenge=None):
         return 0
 
     def getHoldPriority(self, currentDeck=None, localState=state):
@@ -1776,12 +1784,12 @@ class SpecialHelper:
         self.name = name
         self.quantity = quantity
 
-    def getAssistBefore(self, icons):
+    def getAssistBefore(self, challenge=None):
         if self.name == "sacrifice health":
             return self.quantity
         return 0
 
-    def getAssistAfter(self, icons):
+    def getAssistAfter(self, challenge=None):
         return 0
 
     def getHoldPriority(self, currentDeck=None, localState=state):
@@ -2168,9 +2176,9 @@ def getPriority(challenge, pc, allOutcomes, helpers=None, lookAhead=True):
     playerHelper = None
     tokensRestored = False
     for helper in helpers:
-        delta -= helper.getAssistBefore(challenge.icons)
+        delta -= helper.getAssistBefore(challenge)
         if isinstance(helper, FKCCard) or isinstance(helper, SurpriseCard):
-            delta -= helper.getAssistAfter(challenge.icons)
+            delta -= helper.getAssistAfter(challenge)
             if helper.discardEffect == "regain action tokens":
                 tokensRestored = True
                 for player in localState.players:
@@ -2223,7 +2231,7 @@ def getPriority(challenge, pc, allOutcomes, helpers=None, lookAhead=True):
         ]
     ) > 0:
         delta -= 1
-        if state.villain == "giant":
+        if challenge.deck == "giant":
             delta -= 1
 
     mightAsWellTryFactor = 0
@@ -2237,7 +2245,7 @@ def getPriority(challenge, pc, allOutcomes, helpers=None, lookAhead=True):
         and playerHelper is not None
         and localState.currentPlayer == len(localState.players) - 1
     ):
-        mightAsWellTryFactor = 0.001 * playerHelper.getAssistBefore(challenge.icons)
+        mightAsWellTryFactor = 0.001 * playerHelper.getAssistBefore(challenge)
 
     success, failure = getOutcomes(challenge, allOutcomes)
 
@@ -3240,11 +3248,11 @@ def assembleOptions(localState=state, currentDeckType=""):
                         ):
                             helpSum = 0
                             for helper in newSet:
-                                helpSum += helper.getAssistBefore(card.icons)
+                                helpSum += helper.getAssistBefore(card)
                                 if isinstance(helper, FKCCard) or isinstance(
                                     helper, SurpriseCard
                                 ):
-                                    helpSum += helper.getAssistAfter(card.icons)
+                                    helpSum += helper.getAssistAfter(card)
                             if helpSum >= minimumNeeded:
                                 setsOfUsefulHelpers.append(newSet.copy())
                             else:
