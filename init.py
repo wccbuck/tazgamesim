@@ -53,8 +53,9 @@ def initDeck(url, type):
 def getChallengeDeck(deckName, challengeDecks):
     challengeDeck = []
     for deck in challengeDecks:
-        if deck["name"] == deckName:
+        if deck["name"].replace(" ", "") == deckName.replace(" ", ""):
             challengeDeck = deck["cards"]
+            break
     return challengeDeck
 
 

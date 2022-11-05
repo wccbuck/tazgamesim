@@ -1031,6 +1031,8 @@ class Option:
                     # trigger a fkc card purchase which changes the discard pile
                     if state.challengeDiscard:
                         returnedCard = state.challengeDiscard.pop()
+                        returnedCard.currentDeck = returnedCard.decktype
+                        returnedCard.reverse.currentDeck = returnedCard.decktype
                         returnedDeck = getDeckFromType(returnedCard.decktype)
                         returnedDeck.insert(0, returnedCard)
                         returnedCard.reveal()
@@ -1703,6 +1705,7 @@ class Option:
                     if gerblinCard is not None:
                         state.challengeDiscard.remove(gerblinCard)
                         gerblinCard.currentDeck = "villain"
+                        gerblinCard.reverse.currentDeck = "villain"
                         state.villainDeck.insert(0, gerblinCard)
 
                     currentDeck[0].reveal()
