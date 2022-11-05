@@ -5,6 +5,8 @@ The goal of the Adventure Zone board game is to complete all ten challenges in t
 
 ## How to use this tool
 
+First, install pyyaml: `pip install pyyaml`. If you don't have pip, read how to get it [here](https://pip.pypa.io/en/stable/installation/).
+
 Open `game_setup.yaml` and choose your villain, relic, and location. You have six options for each:
 
 | Villain   | Relic | Location |
@@ -24,7 +26,7 @@ Finally, choose whether you want to simulate one game at a time with a visual ai
 
 When display = True, you can also choose whether or not you want to "skipPauses". When set to True, the entire game will run to its conclusion at once; when set to False, the simulation will pause at certain points each turn and require the user to press "Enter" to continue.
 
-Once you're all set up, just run `python3 run.py`. The simulator can complete one to two games per second.
+Once you're all set up, just run `python3 run.py`. The simulator can complete one to two games per second on a fast computer.
 
 ## How Does This Work?
 
