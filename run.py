@@ -398,7 +398,7 @@ else:
     losses = len([result for result in results if not result["won"]])
     winrate = wins / len(results)
     winratePct = 100.0 * wins / len(results)
-    wrError = 100.0 * (1.96 * math.sqrt((winrate * (1 - winrate)) / state.runs))
+    wrError = 100.0 * (1.96 * math.sqrt((winrate * (1 - winrate)) / (i + 1)))
     wrLowerBound = winratePct - wrError
     wrUpperBound = winratePct + wrError
     turnCount = statistics.mean([result["turnCount"] for result in results])
