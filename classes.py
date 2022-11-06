@@ -3287,8 +3287,8 @@ def assembleOptions(localState=state, currentDeckType=""):
                     )
 
     options = sorted(options, reverse=True)
-    if not options and localState == state:
-        if state.display:
+    if not options:
+        if state.display and localState == state:
             print("No options possible! Skipping turn.")
         options.append(Option(None, pc))
     return options
