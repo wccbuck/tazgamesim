@@ -211,9 +211,9 @@ class PlayerCharacter:
             mostDiscardable.useDiscardAbility()
 
     def drawFkcCard(self):
-        fkcCard = state.fkcDeck.pop()
+        fkcCard = getFkcCard()
         if self.name == "rogue":
-            fkcCard2 = state.fkcDeck.pop()
+            fkcCard2 = getFkcCard()
             if fkcCard.getHoldPriority(
                 skipDiscardEffect=True
             ) > fkcCard2.getHoldPriority(skipDiscardEffect=True):
@@ -664,7 +664,7 @@ class SurpriseCard:
         if self.discardEffect == "no damage after fail":
             state.pendingDamage = 0
         if self.discardEffect in ["draw fkc card", "draw fkc card skip challenge"]:
-            newFkcCard = state.fkcDeck.pop()
+            newFkcCard = getFkcCard()
             state.players[state.currentPlayer].addFkcCard(newFkcCard)
         if self.discardEffect == "flip any active challenge cards":
             # todo: include other flippable cards
@@ -3367,6 +3367,18 @@ def getRecoverPriority(recoveryAmt, localState=state):
 def getDamagePriority(dmgAmt, localState=state):
     newHealth = max(localState.health - dmgAmt, 0)
     return getHealthChangePriority(localState.health, newHealth)
+
+
+def getFkcCard():
+    fkcCard = None
+    if state.fkcDeck:
+        fkcCard = state.fkcDeck.pop()
+    elif state.fkcDiscard:
+        while state.fkcDiscard:
+            state.fkcDeck.append(state.fkcDiscard.pop())
+        random.shuffle(state.fkcDeck)
+        fkcCard = state.fkcDeck.pop()
+    return fkcCard
 
 
 def copyState():
