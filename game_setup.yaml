@@ -12,6 +12,7 @@ players:
 skipPauses: False
 display: False
 runs: 30000
+resultsFilename: results.txt
 # the below house rule lets players spend their token in place of discarding
 # a location challenge card when playing with the Train or Race locations
 trainRaceTokenHouseRule: False

@@ -542,9 +542,10 @@ else:
                 print(
                     f"{winratePct}\t{wrLowerBound}\t{wrUpperBound}\t{turnCount}\t{tcStdev}\t{winHealth}\t{villainWinsPct}\t{locationWinsPct}\t{completeWinsPct}\t{eolLossesPct}\t{avgEOLHealth}\t{wrNemesisShowedUp}\t{wrNoNemesisShowedUp}"
                 )
-                print("\nRecording results in results.txt.\n")
+                resultsFilename = state.gameSetupDict["resultsFilename"]
+                print(f"\nRecording results in {resultsFilename}.\n")
                 print("#####################")
-                with open("results.txt", "a") as file:
+                with open(resultsFilename, "a") as file:
                     if os.name != "nt":
                         fcntl.flock(file, fcntl.LOCK_EX)
                     file.write(gameKey)

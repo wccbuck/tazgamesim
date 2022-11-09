@@ -91,6 +91,9 @@ def readGameSetup(url):
     for decktype in ["villain", "relic", "location"]:
         if not isinstance(state.gameSetupDict[decktype], list):
             state.gameSetupDict[decktype] = [state.gameSetupDict[decktype]]
+
+    if "resultsFilename" not in state.gameSetupDict:
+        state.gameSetupDict["resultsFilename"] = "results.txt"
     state.skipPauses = (
         "skipPauses" in state.gameSetupDict
         and state.gameSetupDict["skipPauses"] == True
