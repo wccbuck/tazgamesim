@@ -4,6 +4,7 @@ villain:
 relic: idol
 location: race
 players:
+    - bard
     - priest
     - rogue
     - warrior

@@ -2,6 +2,7 @@ import random
 import copy
 import statistics
 import math
+import fcntl
 import state, futureState
 from time import sleep
 from init import *
@@ -541,8 +542,10 @@ else:
                 print("\nRecording results in results.txt.\n")
                 print("#####################")
                 with open("results.txt", "a") as file:
+                    fcntl.flock(file, fcntl.LOCK_EX)
                     file.write(gameKey)
                     file.write(f"\nCompleted Runs: {(i + 1)}")
                     file.write(
                         f"\n{winratePct}\t{wrLowerBound}\t{wrUpperBound}\t{turnCount}\t{tcStdev}\t{winHealth}\t{villainWinsPct}\t{locationWinsPct}\t{completeWinsPct}\t{eolLossesPct}\t{avgEOLHealth}\t{wrNemesisShowedUp}\t{wrNoNemesisShowedUp}\n\n"
                     )
+                    fcntl.flock(file, fcntl.LOCK_UN)
