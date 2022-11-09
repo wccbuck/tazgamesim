@@ -18,11 +18,25 @@ Open `game_setup.yaml` and choose your villain, relic, and location. You have si
 | dragon    | hoard | train    |
 | cult      | idol  | race     |
 
+You can also choose multiple villains/relics/locations like so:
+
+```
+villain:
+    - lich
+    - crew
+relic: ring
+location:
+    - carnival
+    - temple
+```
+
+If you have `display: False` (more on that below), the simulator will iterate through every combination of the challenge decks you choose. Otherwise, it will run the first in each list but ignore the rest.
+
 Next, choose your players. Choose between three and five of the following options:
 
 * bard, priest, rogue, warrior, wizard
 
-Finally, choose whether you want to simulate one game at a time with a visual aid, or simulate many for statistical analysis. This is decided with the "display" option; `True` means you will see each step of the game in the terminal window, and `False` means you will only see indicators of games completed and cumulative win rates (once every ten games). Enter your desired number of games under "runs" (minimum 1). At the end of an "analytical mode" run (with display = False), you'll see a display of a variety of statistics, such as final win rate, average turn count, and more.
+Finally, choose whether you want to simulate one game at a time with a visual aid, or simulate many for statistical analysis. This is decided with the "display" option; `True` means you will see each step of the game in the terminal window, and `False` means you will only see indicators of games completed and cumulative win rates (once every ten games). Enter your desired number of games under "runs" (minimum 1). At the end of an "analytical mode" run (with display = False), you'll see a display of a variety of statistics, such as final win rate, average turn count, and more. The results will be written to a file in this directory titled "results.txt".
 
 When display = True, you can also choose whether or not you want to "skipPauses". When set to True, the entire game will run to its conclusion at once; when set to False, the simulation will pause at certain points each turn and require the user to press "Enter" to continue.
 

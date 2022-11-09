@@ -1,8 +1,9 @@
-villain: crew
-relic: sash
-location: train
+villain:
+    - lich
+    - giant
+relic: idol
+location: race
 players:
-    - bard
     - priest
     - rogue
     - warrior

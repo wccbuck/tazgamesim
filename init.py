@@ -81,7 +81,29 @@ def getUniqueChallengeDeckKeysAndIcons(challengeDecks):
     return keys, icons
 
 
-def initGame(url):
+def readGameSetup(url):
+    state.gameSetupDict = {}
+    with open(url, "r") as file:
+        try:
+            state.gameSetupDict = yaml.safe_load(file)
+        except yaml.YAMLError as exc:
+            print(exc)
+    for decktype in ["villain", "relic", "location"]:
+        if not isinstance(state.gameSetupDict[decktype], list):
+            state.gameSetupDict[decktype] = [state.gameSetupDict[decktype]]
+    state.skipPauses = (
+        "skipPauses" in state.gameSetupDict
+        and state.gameSetupDict["skipPauses"] == True
+    )
+    state.display = state.gameSetupDict["display"] == True
+    state.runs = state.gameSetupDict["runs"] if "runs" in state.gameSetupDict else 1
+    state.trainRaceTokenHouseRule = (
+        "trainRaceTokenHouseRule" in state.gameSetupDict
+        and state.gameSetupDict["trainRaceTokenHouseRule"] == True
+    )
+
+
+def initGame(vIndex=0, rIndex=0, lIndex=0):
 
     state.won = None
     state.surpriseDeck = initDeck("carddata/surprise.yaml", "surprise")
@@ -96,21 +118,10 @@ def initGame(url):
         except yaml.YAMLError as exc:
             print(exc)
 
-    state.gameSetupDict = {}
-    with open(url, "r") as file:
-        try:
-            state.gameSetupDict = yaml.safe_load(file)
-        except yaml.YAMLError as exc:
-            print(exc)
-    state.skipPauses = (
-        "skipPauses" in state.gameSetupDict
-        and state.gameSetupDict["skipPauses"] == True
-    )
-    state.display = state.gameSetupDict["display"] == True
-    state.runs = state.gameSetupDict["runs"] or 1
-    state.villain = state.gameSetupDict["villain"]
-    state.relic = state.gameSetupDict["relic"]
-    state.location = state.gameSetupDict["location"]
+    state.villain = state.gameSetupDict["villain"][vIndex]
+    state.relic = state.gameSetupDict["relic"][rIndex]
+    state.location = state.gameSetupDict["location"][lIndex]
+
     state.villainDeck = getChallengeDeck(state.villain, challengeDecks)
     state.relicDeck = getChallengeDeck(state.relic, challengeDecks)
     state.locationDeck = getChallengeDeck(state.location, challengeDecks)
@@ -140,13 +151,8 @@ def initGame(url):
     for card in [state.villainDeck[0], state.relicDeck[0], state.locationDeck[0]]:
         card.reveal()
 
-    state.trainRaceTokenHouseRule = (
-        "trainRaceTokenHouseRule" in state.gameSetupDict
-        and state.gameSetupDict["trainRaceTokenHouseRule"] == True
-    )
 
-
-def reinitGame(url):
+def reinitGame():
 
     state.challengeDiscard = []
     state.surpriseDiscard = []
