@@ -96,20 +96,21 @@ def initGame(url):
         except yaml.YAMLError as exc:
             print(exc)
 
-    gameSetupDict = {}
+    state.gameSetupDict = {}
     with open(url, "r") as file:
         try:
-            gameSetupDict = yaml.safe_load(file)
+            state.gameSetupDict = yaml.safe_load(file)
         except yaml.YAMLError as exc:
             print(exc)
     state.skipPauses = (
-        "skipPauses" in gameSetupDict and gameSetupDict["skipPauses"] == True
+        "skipPauses" in state.gameSetupDict
+        and state.gameSetupDict["skipPauses"] == True
     )
-    state.display = gameSetupDict["display"] == True
-    state.runs = gameSetupDict["runs"] or 1
-    state.villain = gameSetupDict["villain"]
-    state.relic = gameSetupDict["relic"]
-    state.location = gameSetupDict["location"]
+    state.display = state.gameSetupDict["display"] == True
+    state.runs = state.gameSetupDict["runs"] or 1
+    state.villain = state.gameSetupDict["villain"]
+    state.relic = state.gameSetupDict["relic"]
+    state.location = state.gameSetupDict["location"]
     state.villainDeck = getChallengeDeck(state.villain, challengeDecks)
     state.relicDeck = getChallengeDeck(state.relic, challengeDecks)
     state.locationDeck = getChallengeDeck(state.location, challengeDecks)
@@ -124,7 +125,7 @@ def initGame(url):
     sc3.currentDeck = "location"
     state.locationDeck.insert(4, sc3)
 
-    state.players = [PlayerCharacter(name) for name in gameSetupDict["players"]]
+    state.players = [PlayerCharacter(name) for name in state.gameSetupDict["players"]]
     random.shuffle(state.players)
     state.currentPlayer = 0
 
@@ -140,8 +141,8 @@ def initGame(url):
         card.reveal()
 
     state.trainRaceTokenHouseRule = (
-        "trainRaceTokenHouseRule" in gameSetupDict
-        and gameSetupDict["trainRaceTokenHouseRule"] == True
+        "trainRaceTokenHouseRule" in state.gameSetupDict
+        and state.gameSetupDict["trainRaceTokenHouseRule"] == True
     )
 
 
@@ -163,13 +164,6 @@ def reinitGame(url):
     random.shuffle(state.fkcDeck)
     challengeDecks = initDeck("carddata/challenge.yaml", "challenge")
 
-    gameSetupDict = {}
-    with open(url, "r") as file:
-        try:
-            gameSetupDict = yaml.safe_load(file)
-        except yaml.YAMLError as exc:
-            print(exc)
-
     state.villainDeck = getChallengeDeck(state.villain, challengeDecks)
     state.relicDeck = getChallengeDeck(state.relic, challengeDecks)
     state.locationDeck = getChallengeDeck(state.location, challengeDecks)
@@ -187,6 +181,6 @@ def reinitGame(url):
     for card in [state.villainDeck[0], state.relicDeck[0], state.locationDeck[0]]:
         card.reveal()
 
-    state.players = [PlayerCharacter(name) for name in gameSetupDict["players"]]
+    state.players = [PlayerCharacter(name) for name in state.gameSetupDict["players"]]
     random.shuffle(state.players)
     state.currentPlayer = 0
