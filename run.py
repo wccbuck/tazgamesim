@@ -287,6 +287,7 @@ readGameSetup("game_setup.yaml")
 
 if state.display:
     # only runs first villain/relic/location in list
+    initGame()
     for _ in range(state.runs):
         while True:
             displayGameState()
