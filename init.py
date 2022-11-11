@@ -104,6 +104,14 @@ def readGameSetup(url):
         "trainRaceTokenHouseRule" in state.gameSetupDict
         and state.gameSetupDict["trainRaceTokenHouseRule"] == True
     )
+    state.assistLevelUpHouseRule = (
+        "assistLevelUpHouseRule" in state.gameSetupDict
+        and state.gameSetupDict["assistLevelUpHouseRule"] == True
+    )
+    state.baseStrengthLevelUpHouseRule = (
+        "baseStrengthLevelUpHouseRule" in state.gameSetupDict
+        and state.gameSetupDict["baseStrengthLevelUpHouseRule"] == True
+    )
 
 
 def initGame(vIndex=0, rIndex=0, lIndex=0):

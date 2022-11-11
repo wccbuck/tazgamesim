@@ -1,8 +1,6 @@
-villain:
-    - lich
-    - giant
-relic: idol
-location: race
+villain: cult
+relic: sword
+location: train
 players:
     - bard
     - priest
@@ -13,6 +11,14 @@ skipPauses: False
 display: False
 runs: 30000
 resultsFilename: results.txt
-# the below house rule lets players spend their token in place of discarding
+# The below house rule lets players spend their token in place of discarding
 # a location challenge card when playing with the Train or Race locations
 trainRaceTokenHouseRule: False
+# The following house rule grants a +1 any time a PC grants an assist in a
+# challenge they specialize in. Consider using this as a "level-up" bonus
+# when playing a campaign of multiple games.
+assistLevelUpHouseRule: False
+# The following house rule grants a +1 to a PC's base strength (their strength
+# when attempting a challenge they don't specialize in). Consider using this as
+# a "level-up" bonus when playing a campaign of multiple games.
+baseStrengthLevelUpHouseRule: False

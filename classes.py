@@ -43,6 +43,9 @@ class PlayerCharacter:
         if self.name == "bard" and challengeCard.decktype != "relic":
             returnval = 1
 
+        if state.baseStrengthLevelUpHouseRule and returnval < 4:
+            returnval += 1
+
         return returnval
 
     def totalStrength(self, challengeCard):
@@ -81,6 +84,15 @@ class PlayerCharacter:
                 assist += 1
         if challenge is not None and challenge.deck == "giant":
             assist += 1
+        if state.assistLevelUpHouseRule and challenge is not None:
+            if (
+                (self.name == "warrior" and "monster" in icons)
+                or (self.name == "rogue" and "trap" in icons)
+                or (self.name == "priest" and "spooky" in icons)
+                or (self.name == "wizard" and "magic" in icons)
+                or (self.name == "bard" and challenge.decktype == "relic")
+            ):
+                assist += 1
         return assist
 
     def getAssistAfter(self, challenge=None):
