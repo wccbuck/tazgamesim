@@ -1,7 +1,8 @@
 from init import *
 from classes import *
 
-initGame("game_setup.yaml")
+readGameSetup("game_setup.yaml")
+initGame()
 
 challengeDecks = []
 with open("carddata/challenge.yaml", "r") as file:

@@ -4,7 +4,7 @@ import statistics
 import math
 import os
 import state, futureState
-from time import sleep
+from time import sleep, process_time
 from init import *
 from classes import *
 
@@ -355,15 +355,29 @@ if state.display:
         #     )
         # sleep(1)
 else:
+    simulationsAfterThisOne = (
+        len(state.gameSetupDict["villain"])
+        * len(state.gameSetupDict["relic"])
+        * len(state.gameSetupDict["location"])
+    )
     for vIndex in range(len(state.gameSetupDict["villain"])):
         for rIndex in range(len(state.gameSetupDict["relic"])):
             for lIndex in range(len(state.gameSetupDict["location"])):
+                simulationsAfterThisOne -= 1
+                startTime = process_time()
                 initGame(vIndex, rIndex, lIndex)
                 players = ", ".join(pc for pc in state.gameSetupDict["players"])
                 print(
                     f"Beginning {state.runs} simulated games on ({state.villain}, {state.relic}, {state.location}) with players ({players})"
                 )
                 results = []
+
+                gameKey = f"{state.villain}-{state.relic}-{state.location}-"
+                playerList = [player.name for player in state.players]
+                playerList.sort()
+                playerListString = "-".join(playerList)
+                gameKey += playerListString
+                gameKey = gameKey.replace(" ", "")
 
                 for i in range(state.runs):
                     try:
@@ -400,13 +414,32 @@ else:
                                 results.append(result)
                                 break
                         if (i + 1) % 10 == 0:
-                            winratePct = (
-                                100.0
-                                * len([result for result in results if result["won"]])
-                                / len(results)
-                            )
+                            winrate = len(
+                                [result for result in results if result["won"]]
+                            ) / len(results)
+                            winratePct = 100.0 * winrate
                             print(f"{i + 1} ({winratePct:.2f}% winrate)")
-
+                        if (i + 1) % 1000 == 0 and (i + 1) % state.runs != 0:
+                            # give a quick update
+                            pctDone = 100.0 * (i + 1) / state.runs
+                            print(f"\t{pctDone:.2f}% finished.")
+                            print(f"\t{gameKey}")
+                            wrError = 100.0 * (
+                                1.96 * math.sqrt((winrate * (1 - winrate)) / (i + 1))
+                            )
+                            print(f"\tWin rate uncertainty: ±{wrError:.2f}%.")
+                            currentTime = process_time()
+                            secondsElapsed = currentTime - startTime
+                            estTotalTime = 100.0 * secondsElapsed / pctDone
+                            secondsRemaining = estTotalTime - secondsElapsed
+                            m, s = divmod(secondsRemaining, 60)
+                            h, m = divmod(m, 60)
+                            print(
+                                f"\tApproximately {h:.0f} hours, {m:.0f} minutes remaining."
+                            )
+                            print(
+                                f"\t{simulationsAfterThisOne} simulation runs queued after this one finishes."
+                            )
                         reinitGame()
                     except KeyboardInterrupt:
                         print(" >> keyboard interrupt")
@@ -529,12 +562,6 @@ else:
                         )
                         print(f"Win Rate otherwise: {wrNoNemesisShowedUp}%")
 
-                gameKey = f"{state.villain}-{state.relic}-{state.location}-"
-                playerList = [player.name for player in state.players]
-                playerList.sort()
-                playerListString = "-".join(playerList)
-                gameKey += playerListString
-                gameKey = gameKey.replace(" ", "")
                 print("\nKey for this game:")
                 print(gameKey)
                 print(
