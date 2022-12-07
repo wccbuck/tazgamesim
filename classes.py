@@ -3307,11 +3307,12 @@ def assembleOptions(localState=state, currentDeckType=""):
         if state.display and localState == state:
             print("No options possible! Skipping turn.")
         options.append(Option(None, pc))
-        state.firstSkippedPlayerNum = (
-            state.currentPlayer
-        )  # this is to avoid infinite loops
+        if localState.firstSkippedPlayerNum == -1:
+            localState.firstSkippedPlayerNum = (
+                localState.currentPlayer
+            )  # this is to avoid infinite loops
     else:
-        state.firstSkippedPlayerNum = -1
+        localState.firstSkippedPlayerNum = -1
     return options
 
 

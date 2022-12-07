@@ -289,7 +289,13 @@ if state.display:
     # only runs first villain/relic/location in list
     initGame()
     for _ in range(state.runs):
+        turnCount = 0
         while True:
+            turnCount += 1
+            if turnCount > 100:
+                state.skipPauses = False
+                console.log("Possible infinite loop. Please investigate")
+                input()
             displayGameState()
             activeCards = getActiveCards()
 
