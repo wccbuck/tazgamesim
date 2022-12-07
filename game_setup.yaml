@@ -1,16 +1,16 @@
-villain: cult
-relic: sword
-location: train
+villain: crew
+relic: idol
+location:
+    - train
+    - tomb
 players:
     - bard
     - priest
-    - rogue
     - warrior
-    - wizard
 skipPauses: False
 display: False
 runs: 30000
-resultsFilename: results.txt
+resultsFilename: results-crew-idol-bard-priest-warrior.txt
 # The below house rule lets players spend their token in place of discarding
 # a location challenge card when playing with the Train or Race locations
 trainRaceTokenHouseRule: False

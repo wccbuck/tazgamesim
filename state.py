@@ -17,3 +17,4 @@ currentPlayer = 0
 priorities = {}
 relicCounters = 0
 pendingDamage = 0
+firstSkippedPlayerNum = -1

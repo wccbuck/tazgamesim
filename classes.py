@@ -2732,6 +2732,7 @@ def assembleOptions(localState=state, currentDeckType=""):
             card.currentDeck == "location"
             and state.location in ["train", "race"]
             and not (card.succeedEffect and "recover " in card.succeedEffect)
+            and not localState.currentPlayer == localState.firstSkippedPlayerNum
         ):
             activeCards.remove(card)
             break
@@ -3151,7 +3152,10 @@ def assembleOptions(localState=state, currentDeckType=""):
                     )
         if "no dice" in card.icons and not (card.finale and card.difficulty == 0):
             minimumNeeded = getDelta(card, pc)
-            if minimumNeeded <= 0:
+            if (
+                minimumNeeded <= 0
+                or localState.currentPlayer == localState.firstSkippedPlayerNum
+            ):
                 options.append(Option(card, pc, allOutcomes, lookAhead=lookAhead))
             else:
                 currentDeck = getDeckFromType(card.currentDeck)
@@ -3303,6 +3307,11 @@ def assembleOptions(localState=state, currentDeckType=""):
         if state.display and localState == state:
             print("No options possible! Skipping turn.")
         options.append(Option(None, pc))
+        state.firstSkippedPlayerNum = (
+            state.currentPlayer
+        )  # this is to avoid infinite loops
+    else:
+        state.firstSkippedPlayerNum = -1
     return options
 
 
@@ -3403,6 +3412,7 @@ def copyState():
     futureState.currentPlayer = state.currentPlayer
     futureState.relicCounters = state.relicCounters
     futureState.pendingDamage = state.pendingDamage
+    futureState.firstSkippedPlayerNum = state.firstSkippedPlayerNum
     futureState.trainRaceTokenHouseRule = state.trainRaceTokenHouseRule
     futureState.villainDeck = copy.deepcopy(state.villainDeck)
     futureState.relicDeck = copy.deepcopy(state.relicDeck)
