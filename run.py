@@ -294,7 +294,7 @@ if state.display:
             turnCount += 1
             if turnCount > 100:
                 state.skipPauses = False
-                console.log("Possible infinite loop. Please investigate")
+                print("Possible infinite loop. Please investigate")
                 input()
             displayGameState()
             activeCards = getActiveCards()
@@ -342,9 +342,11 @@ if state.display:
             if state.won is not None:
                 if state.won:
                     print("Win!")
+                    print(_)
                     break
                 else:
                     print("Loss!")
+                    print(_)
                     break
             print("Press enter to continue to the next player's turn.")
             # print("Btw, current player's loot cards:")

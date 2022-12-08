@@ -3308,10 +3308,11 @@ def assembleOptions(localState=state, currentDeckType=""):
             print("No options possible! Skipping turn.")
         options.append(Option(None, pc))
         if localState.firstSkippedPlayerNum == -1:
-            localState.firstSkippedPlayerNum = (
-                localState.currentPlayer
-            )  # this is to avoid infinite loops
-    else:
+            localState.firstSkippedPlayerNum = localState.currentPlayer
+            # this is to avoid infinite loops
+    elif not (
+        isinstance(options[0].card, FKCCard) and "skip" in options[0].card.ongoingEffect
+    ):
         localState.firstSkippedPlayerNum = -1
     return options
 
