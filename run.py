@@ -285,6 +285,9 @@ def displayHealth():
 
 readGameSetup("game_setup.yaml")
 
+# how many games before we give a quick update, est. time remaining, etc
+updateInterval = 1000
+
 if state.display:
     # only runs first villain/relic/location in list
     initGame()
@@ -373,6 +376,8 @@ else:
             for lIndex in range(len(state.gameSetupDict["location"])):
                 simulationsAfterThisOne -= 1
                 startTime = process_time()
+                secondsPerRun = -1
+
                 initGame(vIndex, rIndex, lIndex)
                 players = ", ".join(pc for pc in state.gameSetupDict["players"])
                 print(
@@ -427,7 +432,7 @@ else:
                             ) / len(results)
                             winratePct = 100.0 * winrate
                             print(f"{i + 1} ({winratePct:.2f}% winrate)")
-                        if (i + 1) % 1000 == 0 and (i + 1) % state.runs != 0:
+                        if (i + 1) % updateInterval == 0 and (i + 1) % state.runs != 0:
                             # give a quick update
                             pctDone = 100.0 * (i + 1) / state.runs
                             print(f"\t{pctDone:.2f}% finished.")
@@ -438,16 +443,24 @@ else:
                             print(f"\tWin rate uncertainty: ±{wrError:.2f}%.")
                             currentTime = process_time()
                             secondsElapsed = currentTime - startTime
-                            estTotalTime = 100.0 * secondsElapsed / pctDone
-                            secondsRemaining = estTotalTime - secondsElapsed
+                            runsRemaining = state.runs - (i + 1)
+                            if secondsPerRun > 0:
+                                # average last 1000's rate with this one
+                                secondsPerRun = (
+                                    secondsPerRun + (secondsElapsed / updateInterval)
+                                ) / 2
+                            else:
+                                secondsPerRun = secondsElapsed / updateInterval
+                            secondsRemaining = secondsPerRun * runsRemaining
                             m, s = divmod(secondsRemaining, 60)
                             h, m = divmod(m, 60)
                             print(
-                                f"\tApproximately {h:.0f} hours, {m:.0f} minutes remaining."
+                                f"\tApproximately {h:.0f} hours, {m:.0f} minutes remaining. ({secondsPerRun:.2f} seconds per game)"
                             )
                             print(
                                 f"\t{simulationsAfterThisOne} simulation runs queued after this one finishes."
                             )
+                            startTime = currentTime
                         reinitGame()
                     except KeyboardInterrupt:
                         print(" >> keyboard interrupt")

@@ -1,15 +1,20 @@
-villain: crew
-relic: sword
+villain: lich
+relic: ring
 location:
+    - cave
+    - carnival
+    - temple
+    - race
     - train
+    - tomb
 players:
     - bard
     - priest
-    - wizard
+    - warrior
 skipPauses: False
 display: False
 runs: 30000
-resultsFilename: results.txt
+resultsFilename: results_3p-lich-ring-bard-priest-warrior.txt
 # The below house rule lets players spend their token in place of discarding
 # a location challenge card when playing with the Train or Race locations
 trainRaceTokenHouseRule: False
