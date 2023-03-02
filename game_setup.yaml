@@ -1,20 +1,25 @@
-villain: lich
-relic: ring
+# vlrIndices:
+#     - [0, 0, 0]
+#     - [0, 1, 0]
+#     - [0, 1, 1]
+villain:
+    - darklord
+relic:
+    - sash
+    - idol
 location:
-    - cave
-    - carnival
-    - temple
     - race
     - train
-    - tomb
 players:
     - bard
     - priest
+    - rogue
     - warrior
+    - wizard
 skipPauses: False
 display: False
-runs: 30000
-resultsFilename: results_3p-lich-ring-bard-priest-warrior.txt
+runs: 20000
+resultsFilename: rerun_5p4p.txt
 # The below house rule lets players spend their token in place of discarding
 # a location challenge card when playing with the Train or Race locations
 trainRaceTokenHouseRule: False

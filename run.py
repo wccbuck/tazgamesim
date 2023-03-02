@@ -279,14 +279,223 @@ def displayHealth():
     print(f"\033[1mCurrent Health:{prefix} {state.health}\033[0m")
 
 
+def runSimulation(vIndex=0, rIndex=0, lIndex=0):
+    # how many games before we give a quick update, est. time remaining, etc
+    updateInterval = 1000
+
+    state.simulationsAfterThisOne -= 1
+    startTime = process_time()
+    secondsPerRun = -1
+
+    initGame(vIndex, rIndex, lIndex)
+    players = ", ".join(pc for pc in state.gameSetupDict["players"])
+    print(
+        f"Beginning {state.runs} simulated games on ({state.villain}, {state.relic}, {state.location}) with players ({players})"
+    )
+    results = []
+
+    gameKey = f"{state.villain}-{state.relic}-{state.location}-"
+    playerList = [player.name for player in state.players]
+    playerList.sort()
+    playerListString = "-".join(playerList)
+    gameKey += playerListString
+    gameKey = gameKey.replace(" ", "")
+
+    for i in range(state.runs):
+        try:
+            result = {}
+            result["turnCount"] = 0
+            result["nemesisShowedUpFirstFiveCards"] = False
+            if state.relic == "hoard":
+                for index in range(7):
+                    # cards 0-6, since card 4 is a surprise card
+                    if state.relicDeck[index].name == "Your Nemesis":
+                        result["nemesisShowedUpFirstFiveCards"] = True
+                        break
+            while True:
+                result["turnCount"] += 1
+                options = assembleOptions()
+
+                options[0].takeAction()
+
+                if state.won is not None:
+                    if state.won:
+                        result["won"] = True
+                        result["clearedVillain"] = deckDefeated("villain")
+                        result["clearedLocation"] = deckDefeated("location")
+                    else:
+                        result["won"] = False
+                        if state.location in ["train", "race"]:
+                            # did we reach the end of the line
+                            result["trainRaceEOL"] = state.locationDeck[0].finale
+
+                    result["health"] = state.health
+                    results.append(result)
+                    break
+            if (i + 1) % 10 == 0:
+                winrate = len([result for result in results if result["won"]]) / len(
+                    results
+                )
+                winratePct = 100.0 * winrate
+                print(f"{i + 1} ({winratePct:.2f}% winrate)")
+            if (i + 1) % updateInterval == 0 and (i + 1) % state.runs != 0:
+                # give a quick update
+                pctDone = 100.0 * (i + 1) / state.runs
+                print(f"\t{pctDone:.2f}% finished.")
+                print(f"\t{gameKey}")
+                wrError = 100.0 * (
+                    1.96 * math.sqrt((winrate * (1 - winrate)) / (i + 1))
+                )
+                print(f"\tWin rate uncertainty: ±{wrError:.2f}%.")
+                currentTime = process_time()
+                secondsElapsed = currentTime - startTime
+                runsRemaining = state.runs - (i + 1)
+                if secondsPerRun > 0:
+                    # average last 1000's rate with this one
+                    secondsPerRun = (
+                        secondsPerRun + (secondsElapsed / updateInterval)
+                    ) / 2
+                else:
+                    secondsPerRun = secondsElapsed / updateInterval
+                secondsRemaining = secondsPerRun * runsRemaining
+                m, s = divmod(secondsRemaining, 60)
+                h, m = divmod(m, 60)
+                print(
+                    f"\tApproximately {h:.0f} hours, {m:.0f} minutes remaining. ({secondsPerRun:.2f} seconds per game)"
+                )
+                print(
+                    f"\t{state.simulationsAfterThisOne} simulation runs queued after this one finishes."
+                )
+                startTime = currentTime
+            reinitGame()
+        except KeyboardInterrupt:
+            print(" >> keyboard interrupt")
+            break
+
+    wins = len([result for result in results if result["won"]])
+    losses = len([result for result in results if not result["won"]])
+    winrate = wins / len(results)
+    winratePct = 100.0 * wins / len(results)
+    wrError = 100.0 * (1.96 * math.sqrt((winrate * (1 - winrate)) / (i + 1)))
+    wrLowerBound = winratePct - wrError
+    wrUpperBound = winratePct + wrError
+    turnCount = statistics.mean([result["turnCount"] for result in results])
+    tcStdev = statistics.stdev([result["turnCount"] for result in results])
+    winHealth = statistics.mean(
+        [result["health"] for result in results if result["won"]]
+    )
+    villainWins = len(
+        [result for result in results if result["won"] and result["clearedVillain"]]
+    )
+    locationWins = len(
+        [result for result in results if result["won"] and result["clearedLocation"]]
+    )
+    completeWins = len(
+        [
+            result
+            for result in results
+            if result["won"] and result["clearedVillain"] and result["clearedLocation"]
+        ]
+    )
+    villainWinsPct = 100.0 * villainWins / wins
+    locationWinsPct = 100.0 * locationWins / wins
+    completeWinsPct = 100.0 * completeWins / wins
+    print("#####################")
+    print(f"Win rate: {winratePct:.2f}%")
+    print(f"Wins: {wins}, Losses: {losses} (Total: {wins+losses})")
+    print(f"Average turn count: {turnCount:.2f} ± {tcStdev:.2f}")
+    print(f"Percentage of wins where villain was defeated: {villainWinsPct:.2f}%")
+    print(f"Percentage of wins where location was cleared: {locationWinsPct:.2f}%")
+    print(
+        f"Percentage of wins where both villain and location were cleared: {completeWinsPct:.2f}%"
+    )
+    eolLossesPct = 0
+    avgEOLHealth = 0
+    wrNemesisShowedUp = 0
+    wrNoNemesisShowedUp = 0
+    if state.location in ["train", "race"]:
+        eolLosses = len(
+            [
+                result
+                for result in results
+                if not result["won"] and result["trainRaceEOL"]
+            ]
+        )
+        eolLossesPct = 100.0 * eolLosses / losses
+        avgEOLHealth = statistics.mean(
+            [
+                result["health"]
+                for result in results
+                if not result["won"] and result["trainRaceEOL"]
+            ]
+        )
+        print(
+            f"Percentage of losses where we reached the end of the location deck: {eolLossesPct:.2f}%"
+        )
+        print(f"Average remaining health in those games: {avgEOLHealth:.2f}")
+    if state.relic == "hoard":
+        nemesisWins = len(
+            [
+                result
+                for result in results
+                if result["nemesisShowedUpFirstFiveCards"] and result["won"]
+            ]
+        )
+        nemesisCount = len(
+            [result for result in results if result["nemesisShowedUpFirstFiveCards"]]
+        )
+        noNemesisWins = len(
+            [
+                result
+                for result in results
+                if not result["nemesisShowedUpFirstFiveCards"] and result["won"]
+            ]
+        )
+        noNemesisCount = len(
+            [
+                result
+                for result in results
+                if not result["nemesisShowedUpFirstFiveCards"]
+            ]
+        )
+        if nemesisCount > 0 and noNemesisCount > 0:
+            wrNemesisShowedUp = 100.0 * nemesisWins / nemesisCount
+            wrNoNemesisShowedUp = 100.0 * noNemesisWins / noNemesisCount
+            print(
+                f"Win Rate where 'Your Nemesis' showed up within the first five challenge cards of the relic deck: {wrNemesisShowedUp}%"
+            )
+            print(f"Win Rate otherwise: {wrNoNemesisShowedUp}%")
+
+    print("\nKey for this game:")
+    print(gameKey)
+    print(
+        "winratePct\twrLowerBound\twrUpperBound\tturnCount\ttcStdev\twinHealth\tvillainWinsPct\tlocationWinsPct\tcompleteWinsPct\teolLossesPct\tavgEOLHealth\twrNemesisShowedUp\twrNoNemesisShowedUp"
+    )
+    print(
+        f"{winratePct}\t{wrLowerBound}\t{wrUpperBound}\t{turnCount}\t{tcStdev}\t{winHealth}\t{villainWinsPct}\t{locationWinsPct}\t{completeWinsPct}\t{eolLossesPct}\t{avgEOLHealth}\t{wrNemesisShowedUp}\t{wrNoNemesisShowedUp}"
+    )
+    resultsFilename = state.gameSetupDict["resultsFilename"]
+    print(f"\nRecording results in {resultsFilename}.\n")
+    print("#####################")
+    with open(resultsFilename, "a") as file:
+        if os.name != "nt":
+            fcntl.flock(file, fcntl.LOCK_EX)
+        file.write(gameKey)
+        file.write(f"\nCompleted Runs: {(i + 1)}")
+        file.write(
+            f"\n{winratePct}\t{wrLowerBound}\t{wrUpperBound}\t{turnCount}\t{tcStdev}\t{winHealth}\t{villainWinsPct}\t{locationWinsPct}\t{completeWinsPct}\t{eolLossesPct}\t{avgEOLHealth}\t{wrNemesisShowedUp}\t{wrNoNemesisShowedUp}\n\n"
+        )
+        if os.name != "nt":
+            file.flush()
+            fcntl.flock(file, fcntl.LOCK_UN)
+
+
 ####
 # Main Game Loop
 ####
 
 readGameSetup("game_setup.yaml")
 
-# how many games before we give a quick update, est. time remaining, etc
-updateInterval = 1000
 
 if state.display:
     # only runs first villain/relic/location in list
@@ -366,242 +575,20 @@ if state.display:
         #     )
         # sleep(1)
 else:
-    simulationsAfterThisOne = (
-        len(state.gameSetupDict["villain"])
-        * len(state.gameSetupDict["relic"])
-        * len(state.gameSetupDict["location"])
+    state.simulationsAfterThisOne = (
+        len(state.vlrIndices)
+        if state.vlrIndices
+        else (
+            len(state.gameSetupDict["villain"])
+            * len(state.gameSetupDict["relic"])
+            * len(state.gameSetupDict["location"])
+        )
     )
-    for vIndex in range(len(state.gameSetupDict["villain"])):
-        for rIndex in range(len(state.gameSetupDict["relic"])):
-            for lIndex in range(len(state.gameSetupDict["location"])):
-                simulationsAfterThisOne -= 1
-                startTime = process_time()
-                secondsPerRun = -1
-
-                initGame(vIndex, rIndex, lIndex)
-                players = ", ".join(pc for pc in state.gameSetupDict["players"])
-                print(
-                    f"Beginning {state.runs} simulated games on ({state.villain}, {state.relic}, {state.location}) with players ({players})"
-                )
-                results = []
-
-                gameKey = f"{state.villain}-{state.relic}-{state.location}-"
-                playerList = [player.name for player in state.players]
-                playerList.sort()
-                playerListString = "-".join(playerList)
-                gameKey += playerListString
-                gameKey = gameKey.replace(" ", "")
-
-                for i in range(state.runs):
-                    try:
-                        result = {}
-                        result["turnCount"] = 0
-                        result["nemesisShowedUpFirstFiveCards"] = False
-                        if state.relic == "hoard":
-                            for index in range(
-                                7
-                            ):  # cards 0-6, since card 4 is a surprise card
-                                if state.relicDeck[index].name == "Your Nemesis":
-                                    result["nemesisShowedUpFirstFiveCards"] = True
-                                    break
-                        while True:
-                            result["turnCount"] += 1
-                            options = assembleOptions()
-
-                            options[0].takeAction()
-
-                            if state.won is not None:
-                                if state.won:
-                                    result["won"] = True
-                                    result["clearedVillain"] = deckDefeated("villain")
-                                    result["clearedLocation"] = deckDefeated("location")
-                                else:
-                                    result["won"] = False
-                                    if state.location in ["train", "race"]:
-                                        # did we reach the end of the line
-                                        result["trainRaceEOL"] = state.locationDeck[
-                                            0
-                                        ].finale
-
-                                result["health"] = state.health
-                                results.append(result)
-                                break
-                        if (i + 1) % 10 == 0:
-                            winrate = len(
-                                [result for result in results if result["won"]]
-                            ) / len(results)
-                            winratePct = 100.0 * winrate
-                            print(f"{i + 1} ({winratePct:.2f}% winrate)")
-                        if (i + 1) % updateInterval == 0 and (i + 1) % state.runs != 0:
-                            # give a quick update
-                            pctDone = 100.0 * (i + 1) / state.runs
-                            print(f"\t{pctDone:.2f}% finished.")
-                            print(f"\t{gameKey}")
-                            wrError = 100.0 * (
-                                1.96 * math.sqrt((winrate * (1 - winrate)) / (i + 1))
-                            )
-                            print(f"\tWin rate uncertainty: ±{wrError:.2f}%.")
-                            currentTime = process_time()
-                            secondsElapsed = currentTime - startTime
-                            runsRemaining = state.runs - (i + 1)
-                            if secondsPerRun > 0:
-                                # average last 1000's rate with this one
-                                secondsPerRun = (
-                                    secondsPerRun + (secondsElapsed / updateInterval)
-                                ) / 2
-                            else:
-                                secondsPerRun = secondsElapsed / updateInterval
-                            secondsRemaining = secondsPerRun * runsRemaining
-                            m, s = divmod(secondsRemaining, 60)
-                            h, m = divmod(m, 60)
-                            print(
-                                f"\tApproximately {h:.0f} hours, {m:.0f} minutes remaining. ({secondsPerRun:.2f} seconds per game)"
-                            )
-                            print(
-                                f"\t{simulationsAfterThisOne} simulation runs queued after this one finishes."
-                            )
-                            startTime = currentTime
-                        reinitGame()
-                    except KeyboardInterrupt:
-                        print(" >> keyboard interrupt")
-                        break
-
-                wins = len([result for result in results if result["won"]])
-                losses = len([result for result in results if not result["won"]])
-                winrate = wins / len(results)
-                winratePct = 100.0 * wins / len(results)
-                wrError = 100.0 * (
-                    1.96 * math.sqrt((winrate * (1 - winrate)) / (i + 1))
-                )
-                wrLowerBound = winratePct - wrError
-                wrUpperBound = winratePct + wrError
-                turnCount = statistics.mean([result["turnCount"] for result in results])
-                tcStdev = statistics.stdev([result["turnCount"] for result in results])
-                winHealth = statistics.mean(
-                    [result["health"] for result in results if result["won"]]
-                )
-                villainWins = len(
-                    [
-                        result
-                        for result in results
-                        if result["won"] and result["clearedVillain"]
-                    ]
-                )
-                locationWins = len(
-                    [
-                        result
-                        for result in results
-                        if result["won"] and result["clearedLocation"]
-                    ]
-                )
-                completeWins = len(
-                    [
-                        result
-                        for result in results
-                        if result["won"]
-                        and result["clearedVillain"]
-                        and result["clearedLocation"]
-                    ]
-                )
-                villainWinsPct = 100.0 * villainWins / wins
-                locationWinsPct = 100.0 * locationWins / wins
-                completeWinsPct = 100.0 * completeWins / wins
-                print("#####################")
-                print(f"Win rate: {winratePct:.2f}%")
-                print(f"Wins: {wins}, Losses: {losses} (Total: {wins+losses})")
-                print(f"Average turn count: {turnCount:.2f} ± {tcStdev:.2f}")
-                print(
-                    f"Percentage of wins where villain was defeated: {villainWinsPct:.2f}%"
-                )
-                print(
-                    f"Percentage of wins where location was cleared: {locationWinsPct:.2f}%"
-                )
-                print(
-                    f"Percentage of wins where both villain and location were cleared: {completeWinsPct:.2f}%"
-                )
-                eolLossesPct = 0
-                avgEOLHealth = 0
-                wrNemesisShowedUp = 0
-                wrNoNemesisShowedUp = 0
-                if state.location in ["train", "race"]:
-                    eolLosses = len(
-                        [
-                            result
-                            for result in results
-                            if not result["won"] and result["trainRaceEOL"]
-                        ]
-                    )
-                    eolLossesPct = 100.0 * eolLosses / losses
-                    avgEOLHealth = statistics.mean(
-                        [
-                            result["health"]
-                            for result in results
-                            if not result["won"] and result["trainRaceEOL"]
-                        ]
-                    )
-                    print(
-                        f"Percentage of losses where we reached the end of the location deck: {eolLossesPct:.2f}%"
-                    )
-                    print(
-                        f"Average remaining health in those games: {avgEOLHealth:.2f}"
-                    )
-                if state.relic == "hoard":
-                    nemesisWins = len(
-                        [
-                            result
-                            for result in results
-                            if result["nemesisShowedUpFirstFiveCards"] and result["won"]
-                        ]
-                    )
-                    nemesisCount = len(
-                        [
-                            result
-                            for result in results
-                            if result["nemesisShowedUpFirstFiveCards"]
-                        ]
-                    )
-                    noNemesisWins = len(
-                        [
-                            result
-                            for result in results
-                            if not result["nemesisShowedUpFirstFiveCards"]
-                            and result["won"]
-                        ]
-                    )
-                    noNemesisCount = len(
-                        [
-                            result
-                            for result in results
-                            if not result["nemesisShowedUpFirstFiveCards"]
-                        ]
-                    )
-                    if nemesisCount > 0 and noNemesisCount > 0:
-                        wrNemesisShowedUp = 100.0 * nemesisWins / nemesisCount
-                        wrNoNemesisShowedUp = 100.0 * noNemesisWins / noNemesisCount
-                        print(
-                            f"Win Rate where 'Your Nemesis' showed up within the first five challenge cards of the relic deck: {wrNemesisShowedUp}%"
-                        )
-                        print(f"Win Rate otherwise: {wrNoNemesisShowedUp}%")
-
-                print("\nKey for this game:")
-                print(gameKey)
-                print(
-                    "winratePct\twrLowerBound\twrUpperBound\tturnCount\ttcStdev\twinHealth\tvillainWinsPct\tlocationWinsPct\tcompleteWinsPct\teolLossesPct\tavgEOLHealth\twrNemesisShowedUp\twrNoNemesisShowedUp"
-                )
-                print(
-                    f"{winratePct}\t{wrLowerBound}\t{wrUpperBound}\t{turnCount}\t{tcStdev}\t{winHealth}\t{villainWinsPct}\t{locationWinsPct}\t{completeWinsPct}\t{eolLossesPct}\t{avgEOLHealth}\t{wrNemesisShowedUp}\t{wrNoNemesisShowedUp}"
-                )
-                resultsFilename = state.gameSetupDict["resultsFilename"]
-                print(f"\nRecording results in {resultsFilename}.\n")
-                print("#####################")
-                with open(resultsFilename, "a") as file:
-                    if os.name != "nt":
-                        fcntl.flock(file, fcntl.LOCK_EX)
-                    file.write(gameKey)
-                    file.write(f"\nCompleted Runs: {(i + 1)}")
-                    file.write(
-                        f"\n{winratePct}\t{wrLowerBound}\t{wrUpperBound}\t{turnCount}\t{tcStdev}\t{winHealth}\t{villainWinsPct}\t{locationWinsPct}\t{completeWinsPct}\t{eolLossesPct}\t{avgEOLHealth}\t{wrNemesisShowedUp}\t{wrNoNemesisShowedUp}\n\n"
-                    )
-                    if os.name != "nt":
-                        file.flush()
-                        fcntl.flock(file, fcntl.LOCK_UN)
+    if state.vlrIndices:
+        for indices in state.vlrIndices:
+            runSimulation(indices[0], indices[1], indices[2])
+    else:
+        for vIndex in range(len(state.gameSetupDict["villain"])):
+            for rIndex in range(len(state.gameSetupDict["relic"])):
+                for lIndex in range(len(state.gameSetupDict["location"])):
+                    runSimulation(vIndex, rIndex, lIndex)

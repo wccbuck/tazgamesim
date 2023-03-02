@@ -112,6 +112,9 @@ def readGameSetup(url):
         "baseStrengthLevelUpHouseRule" in state.gameSetupDict
         and state.gameSetupDict["baseStrengthLevelUpHouseRule"] == True
     )
+    state.vlrIndices = (
+        state.gameSetupDict["vlrIndices"] if "vlrIndices" in state.gameSetupDict else []
+    )
 
 
 def initGame(vIndex=0, rIndex=0, lIndex=0):
